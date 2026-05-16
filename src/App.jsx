@@ -24,8 +24,6 @@ const F = {
 };
 
 const DISCORD_USERNAME = "flocky._";
-const SPOTIFY_CLIENT_ID = "b32f84bb7dfc44dea54060fc3c540a4b";
-const SPOTIFY_SCOPES = "user-read-currently-playing user-read-recently-played";
 
 const globalCss = `
 @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Serif+Display:ital@0;1&family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap');
@@ -532,116 +530,6 @@ function Blog() {
   );
 }
 
-function getRedirectUri() {
-  return `${window.location.origin}${window.location.pathname}`;
-}
-
-function isLoopbackHttp() {
-  return window.location.protocol === "http:" && ["127.0.0.1", "[::1]"].includes(window.location.hostname);
-}
-
-function getSpotifyOriginHelp() {
-  const path = window.location.pathname || "/";
-  const port = window.location.port ? `:${window.location.port}` : "";
-  const localUrl = `http://127.0.0.1${port}${path}`;
-  const httpsLanUrl = `https://${window.location.host}${path}`;
-
-  if (window.isSecureContext || isLoopbackHttp()) {
-    return null;
-  }
-
-  return {
-    localUrl,
-    httpsLanUrl,
-    message:
-      "Spotify blocks login from plain HTTP LAN addresses. Open this site as localhost on this computer, or run Vite with HTTPS and add that exact HTTPS redirect URI in Spotify.",
-  };
-}
-
-function assertSpotifyReady() {
-  if (!window.isSecureContext && !isLoopbackHttp()) {
-    throw new Error(
-      getSpotifyOriginHelp()?.message || "Spotify login needs HTTPS on this address."
-    );
-  }
-
-  if (!window.crypto?.subtle) {
-    throw new Error("Browser crypto is unavailable on this origin. Switch to HTTPS or 127.0.0.1.");
-  }
-}
-
-async function pkceChallenge(verifier) {
-  const data = new TextEncoder().encode(verifier);
-  const digest = await window.crypto.subtle.digest("SHA-256", data);
-
-  return btoa(String.fromCharCode(...new Uint8Array(digest)))
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=/g, "");
-}
-
-function randStr(length) {
-  const chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~";
-  const values = window.crypto.getRandomValues(new Uint8Array(length));
-  return Array.from(values, (x) => chars[x % chars.length]).join("");
-}
-
-async function loginSpotify() {
-  assertSpotifyReady();
-
-  const verifier = randStr(96);
-  const state = randStr(32);
-  const challenge = await pkceChallenge(verifier);
-
-  sessionStorage.setItem("sp_verifier", verifier);
-  sessionStorage.setItem("sp_state", state);
-
-  const authUrl = new URL("https://accounts.spotify.com/authorize");
-  authUrl.search = new URLSearchParams({
-    client_id: SPOTIFY_CLIENT_ID,
-    response_type: "code",
-    redirect_uri: getRedirectUri(),
-    scope: SPOTIFY_SCOPES,
-    code_challenge_method: "S256",
-    code_challenge: challenge,
-    state,
-  }).toString();
-
-  window.location.assign(authUrl.toString());
-}
-
-async function exchangeSpotifyToken(code) {
-  const verifier = sessionStorage.getItem("sp_verifier");
-  if (!verifier) throw new Error("Missing Spotify verifier. Start the login again.");
-
-  const response = await fetch("https://accounts.spotify.com/api/token", {
-    method: "POST",
-    headers: { "Content-Type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
-      client_id: SPOTIFY_CLIENT_ID,
-      grant_type: "authorization_code",
-      code,
-      redirect_uri: getRedirectUri(),
-      code_verifier: verifier,
-    }),
-  });
-
-  const data = await response.json();
-  if (!response.ok) throw new Error(data.error_description || data.error || "Spotify token exchange failed.");
-
-  return data;
-}
-
-async function spFetch(endpoint, token) {
-  const response = await fetch(`https://api.spotify.com/v1/${endpoint}`, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  if (response.status === 204) return null;
-  if (!response.ok) throw new Error("Spotify API request failed.");
-
-  return response.json();
-}
 
 function timeAgo(ms) {
   const seconds = Math.floor((Date.now() - ms) / 1000);
@@ -689,7 +577,7 @@ function NowPlaying({ track, isPlaying }) {
       </div>
       <h3 className="line-clamp" style={{ margin: 0, color: C.offwhite }}>{track?.name || "Nothing playing"}</h3>
       <div className="line-clamp" style={{ marginTop: ".35rem", color: C.taupe, fontFamily: F.mono, fontSize: ".75rem" }}>
-        {artists || "Connect Spotify to show tracks"}
+        {artists || "—"}
       </div>
       {track?.external_urls?.spotify && (
         <a className="button spotify-button" href={track.external_urls.spotify} target="_blank" rel="noreferrer" style={{ marginTop: "1.5rem", width: "100%" }}>
@@ -701,11 +589,7 @@ function NowPlaying({ track, isPlaying }) {
 }
 
 function Music() {
-  const [token, setToken] = useState(() => sessionStorage.getItem("sp_token"));
-  const [nowPlaying, setNowPlaying] = useState(null);
-  const [isPlaying, setIsPlaying] = useState(false);
-  const [recent, setRecent] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [data, setData] = useState(null);
   const [error, setError] = useState("");
 
   const demoNow = useMemo(() => ({
@@ -726,78 +610,33 @@ function Music() {
   })), []);
 
   useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const code = params.get("code");
-    const returnedState = params.get("state");
-    const storedState = sessionStorage.getItem("sp_state");
-    const spotifyError = params.get("error");
-
-    if (!code && !spotifyError) return;
-
-    window.history.replaceState({}, "", getRedirectUri());
-
-    if (spotifyError) {
-      setError(`Spotify cancelled login: ${spotifyError}`);
-      return;
-    }
-
-    if (!storedState || returnedState !== storedState) {
-      setError("Spotify state check failed. Try connecting again.");
-      return;
-    }
-
-    setLoading(true);
-    exchangeSpotifyToken(code)
-      .then((data) => {
-        sessionStorage.setItem("sp_token", data.access_token);
-        sessionStorage.removeItem("sp_verifier");
-        sessionStorage.removeItem("sp_state");
-        setToken(data.access_token);
-        setError("");
-      })
-      .catch((err) => setError(err.message || "Could not connect Spotify."))
-      .finally(() => setLoading(false));
-  }, []);
-
-  useEffect(() => {
-    if (!token) return undefined;
-
     let cancelled = false;
 
     const load = async () => {
       try {
-        const [current, played] = await Promise.all([
-          spFetch("me/player/currently-playing", token),
-          spFetch("me/player/recently-played?limit=8", token),
-        ]);
-
+        const res = await fetch("/api/spotify");
+        if (!res.ok) throw new Error("Could not load music data.");
+        const json = await res.json();
         if (cancelled) return;
-        setIsPlaying(current?.is_playing ?? false);
-        setNowPlaying(current?.item ?? played?.items?.[0]?.track ?? null);
-        setRecent(played?.items ?? []);
+        setData(json);
         setError("");
       } catch (err) {
         if (cancelled) return;
-        sessionStorage.removeItem("sp_token");
-        setToken(null);
-        setError(err.message || "Spotify session expired. Connect again.");
+        setError(err.message || "Could not load music data.");
       }
     };
 
     load();
     const intervalId = window.setInterval(load, 30000);
-
     return () => {
       cancelled = true;
       window.clearInterval(intervalId);
     };
-  }, [token]);
+  }, []);
 
-  const activeNow = token ? nowPlaying : demoNow;
-  const activeRecent = token ? recent : demoRecent;
-  const activePlaying = token ? isPlaying : true;
-  const spotifyOriginHelp =
-    typeof window !== "undefined" ? getSpotifyOriginHelp() : null;
+  const activeNow = data?.nowPlaying ?? demoNow;
+  const activeRecent = data?.recent ?? demoRecent;
+  const activePlaying = data?.isPlaying ?? true;
 
   return (
     <section id="music" className="section" style={{ background: C.black, borderTop: `1px solid ${C.ash}` }}>
@@ -806,79 +645,7 @@ function Music() {
         <h2 className="sec-title" style={{ marginBottom: "3rem" }}>MUSIC.</h2>
       </Reveal>
 
-      {!token && (
-        <Reveal>
-          <div className="surface" style={{ padding: "clamp(1.5rem, 5vw, 3rem)", textAlign: "center", marginBottom: "2rem" }}>
-            <h3 style={{ margin: "0 0 .6rem", color: C.offwhite }}>Connect Spotify</h3>
-            <p className="muted" style={{ maxWidth: 620, margin: "0 auto 1.5rem" }}>
-              Link your Spotify account to show live now-playing and recent listening history.
-            </p>
-            <button
-              className="button spotify-button"
-              type="button"
-              disabled={loading}
-              onClick={async () => {
-                setError("");
-                setLoading(true);
-                try {
-                  await loginSpotify();
-                } catch (err) {
-                  setError(err.message || "Spotify login could not start.");
-                  setLoading(false);
-                }
-              }}
-            >
-              {loading ? "Connecting..." : "Connect with Spotify"}
-            </button>
-            {error && (
-              <div style={{ maxWidth: 720, margin: "1rem auto 0", color: C.rose, fontFamily: F.mono, fontSize: ".72rem", lineHeight: 1.6 }}>
-                {error}
-              </div>
-            )}
-            {spotifyOriginHelp && (
-              <>
-                <div style={{ marginTop: "1rem", color: C.smoke, fontFamily: F.mono, fontSize: ".68rem", lineHeight: 1.6 }}>
-                  Spotify cannot authorize from this plain HTTP LAN URL. Use one of these origins and add the exact redirect URI in your Spotify dashboard.
-                </div>
-                <div
-                  style={{
-                    display: "flex",
-                    justifyContent: "center",
-                    flexWrap: "wrap",
-                    gap: ".75rem",
-                    marginTop: "1rem",
-                  }}
-                >
-                  <a
-                    className="button"
-                    href={spotifyOriginHelp.localUrl}
-                    style={{
-                      background: C.black,
-                      border: `1px solid ${C.rose}`,
-                      color: C.rose,
-                    }}
-                  >
-                    Open Localhost
-                  </a>
-                  <a
-                    className="button"
-                    href={spotifyOriginHelp.httpsLanUrl}
-                    style={{
-                      background: C.ash,
-                      border: `1px solid ${C.smoke}`,
-                      color: C.cream,
-                    }}
-                  >
-                    Try HTTPS LAN
-                  </a>
-                </div>
-              </>
-            )}
-          </div>
-        </Reveal>
-      )}
-
-      {token && error && (
+      {error && (
         <div className="surface" style={{ padding: "1rem", marginBottom: "2rem", color: C.rose, fontFamily: F.mono, fontSize: ".75rem" }}>
           {error}
         </div>
