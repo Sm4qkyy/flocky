@@ -178,55 +178,6 @@ body::before {
   filter: blur(0);
 }
 
-/* ── LOADING SCREEN ── */
-.loading-screen {
-  position: fixed;
-  inset: 0;
-  z-index: 99999;
-  background: ${C.black};
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-direction: column;
-  gap: 1.6rem;
-  transition: opacity .7s ease, visibility .7s ease;
-}
-.loading-screen.out {
-  opacity: 0;
-  visibility: hidden;
-  pointer-events: none;
-}
-.loading-logo {
-  font-family: ${F.display};
-  font-size: clamp(3.5rem, 12vw, 6rem);
-  letter-spacing: .15em;
-  background: linear-gradient(135deg, ${C.offwhite} 30%, ${C.rose});
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  animation: fadeUp .7s both;
-}
-.loading-sub {
-  font-family: ${F.mono};
-  font-size: .58rem;
-  letter-spacing: .28em;
-  text-transform: uppercase;
-  color: ${C.smoke};
-  animation: fadeUp .7s .15s both;
-}
-.loading-bar-track {
-  width: 160px;
-  height: 1px;
-  background: rgba(201,149,108,.15);
-  overflow: hidden;
-  animation: fadeUp .7s .1s both;
-}
-.loading-bar-fill {
-  height: 100%;
-  background: linear-gradient(90deg, ${C.burgundy}, ${C.rose}, ${C.pink});
-  animation: progressBar 1.5s ease forwards;
-}
-
 /* ── NAV ── */
 .mrk-nav {
   position: fixed;
@@ -741,27 +692,6 @@ function Reveal({ children, delay = 0, style }) {
   return (
     <div ref={ref} className="reveal" style={{ transitionDelay: `${delay}ms`, ...style }}>
       {children}
-    </div>
-  );
-}
-
-/* ─────────────── LOADING SCREEN ─────────────── */
-
-function LoadingScreen({ onDone }) {
-  const [out, setOut] = useState(false);
-  useEffect(() => {
-    const t1 = setTimeout(() => setOut(true), 1700);
-    const t2 = setTimeout(() => onDone(), 2400);
-    return () => { clearTimeout(t1); clearTimeout(t2); };
-  }, [onDone]);
-
-  return (
-    <div className={`loading-screen${out ? " out" : ""}`}>
-      <div className="loading-logo">FLOCKY</div>
-      <div className="loading-bar-track">
-        <div className="loading-bar-fill" />
-      </div>
-      <div className="loading-sub">Collective</div>
     </div>
   );
 }
@@ -1453,28 +1383,20 @@ function Footer() {
 /* ─────────────── APP ─────────────── */
 
 export default function App() {
-  const [loaded, setLoaded] = useState(false);
-  const handleDone = useCallback(() => setLoaded(true), []);
-
   return (
     <>
       <InjectStyles />
-      <LoadingScreen onDone={handleDone} />
-      {loaded && (
-        <>
-          <Cursor />
-          <Nav />
-          <Hero />
-          <ActivityTicker />
-          <Portfolio />
-          <Skills />
-          <Members />
-          <JoinCTA />
-          <Music />
-          <Contact />
-          <Footer />
-        </>
-      )}
+      <Cursor />
+      <Nav />
+      <Hero />
+      <ActivityTicker />
+      <Portfolio />
+      <Skills />
+      <Members />
+      <JoinCTA />
+      <Music />
+      <Contact />
+      <Footer />
     </>
   );
 }
