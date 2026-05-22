@@ -749,8 +749,8 @@ function Nav() {
         ))}
         <div className="mobile-drawer-sub">
           <a href="mailto:flocky88@outlook.com" className="tiny-link">EMAIL</a>
-          <a href="#" className="tiny-link">DISCORD</a>
-          <a href="#" className="tiny-link">GITHUB</a>
+          <a href="#contact" className="tiny-link" onClick={close}>DISCORD</a>
+          <a href="https://github.com/Sm4qkyy" target="_blank" rel="noreferrer" className="tiny-link">GITHUB</a>
         </div>
       </div>
     </>
@@ -1119,7 +1119,7 @@ function JoinCTA() {
             Join Discord
           </a>
           <a
-            href="https://github.com/flocky"
+            href="https://github.com/Sm4qkyy"
             target="_blank"
             rel="noreferrer"
             className="button hov"
@@ -1308,7 +1308,7 @@ function Contact() {
   return (
     <section id="contact" className="section" style={{ background: C.charcoal, borderTop: `1px solid ${C.ash}`, textAlign: "center" }}>
       <Reveal>
-        <div className="sec-label">Available for Work</div>
+        <div className="sec-label">Open to Collabs</div>
         <h2 className="sec-title">WORK<br />WITH ME.</h2>
         <p className="muted" style={{ maxWidth: 520, margin: "1.5rem auto 2.5rem" }}>
           Got a project, collab, or opportunity? Reach out via email or Discord — I'd love to hear from you.
@@ -1369,10 +1369,10 @@ function Footer() {
     >
       <div style={{ fontFamily: F.display, fontSize: "2.2rem", color: C.ash }}>FLOCKY</div>
       <div style={{ color: C.smoke, fontFamily: F.mono, fontSize: ".58rem", letterSpacing: ".15em" }}>
-        2026 FLOCKY Collective. All rights reserved.
+        © {new Date().getFullYear()} FLOCKY Collective. All rights reserved.
       </div>
       <div style={{ display: "flex", gap: "1.3rem" }}>
-        {[["DISCORD", "#contact"], ["GITHUB", "#"], ["YT", "#"], ["EMAIL", "mailto:flocky88@outlook.com"]].map(([label, href]) => (
+        {[["DISCORD", "#contact"], ["GITHUB", "https://github.com/Sm4qkyy"], ["EMAIL", "mailto:flocky88@outlook.com"]].map(([label, href]) => (
           <a key={label} href={href} className="tiny-link">{label}</a>
         ))}
       </div>
