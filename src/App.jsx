@@ -798,7 +798,7 @@ function Nav() {
           ))}
         </ul>
         <div style={{ display: "flex", alignItems: "center", gap: ".75rem" }}>
-          <NavLink id="contact" className="nav-cta">Hire Me</NavLink>
+          <NavLink id="contact" className="nav-cta">Work With Me</NavLink>
           <button
             type="button"
             className={`mobile-menu-btn${menuOpen ? " open" : ""}`}
@@ -1379,7 +1379,7 @@ function Contact() {
     <section id="contact" className="section" style={{ background: C.charcoal, borderTop: `1px solid ${C.ash}`, textAlign: "center" }}>
       <Reveal>
         <div className="sec-label">Available for Work</div>
-        <h2 className="sec-title">HIRE<br />ME.</h2>
+        <h2 className="sec-title">WORK<br />WITH ME.</h2>
         <p className="muted" style={{ maxWidth: 520, margin: "1.5rem auto 2.5rem" }}>
           Got a project, collab, or opportunity? Reach out via email or Discord — I'd love to hear from you.
         </p>
