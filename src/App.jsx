@@ -1,7 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import MagicRings from "./MagicRings/MagicRings";
 import RotatingText from "./RotatingText/RotatingText";
-import BorderGlow from "./BorderGlow/BorderGlow";
 
 const C = {
   black: "#080810",
@@ -30,79 +29,11 @@ const DISCORD_USERNAME = "flocky._";
 
 /* ─────────────── DATA ─────────────── */
 
-const MEMBERS = [
-  { id: 1, name: "Flocky", role: "Founder · Dev", initials: "FL", color: "#c9956c" },
-  { id: 2, name: "Ember", role: "Designer · Artist", initials: "EM", color: "#e8c4b0" },
-  { id: 3, name: "Nova", role: "Music Producer", initials: "NV", color: "#8b5e3c" },
-  { id: 4, name: "Cipher", role: "Backend · OSS", initials: "CI", color: "#2a8a8a" },
-  { id: 5, name: "Lyra", role: "Writer · Creative", initials: "LY", color: "#c9956c" },
-  { id: 6, name: "Zest", role: "Frontend · UX", initials: "ZT", color: "#e8c4b0" },
-];
-
 const SKILLS = [
   { cat: "Code", items: ["React", "TypeScript", "Node.js", "Python", "Rust", "SQL"] },
   { cat: "Design", items: ["Figma", "Three.js", "CSS", "Blender", "GSAP"] },
   { cat: "Music", items: ["FL Studio", "Ableton", "Logic Pro", "Max/MSP"] },
   { cat: "Infra", items: ["Vercel", "Docker", "Git", "Linux", "Cloudflare"] },
-];
-
-const ACTIVITY_ITEMS = [
-  "🎵 Nova dropped a new beat in #music-lab",
-  "💻 Cipher pushed to flocky-bots",
-  "🎨 Ember posted new art in #gallery",
-  "🚀 Platform v2.1 deployed",
-  "📖 Lyra published a new essay",
-  "🛠 Flocky opened a PR — Member Directory",
-  "🎉 Global Flockathon announced",
-  "🔧 Discord bot updated — new /vibe command",
-  "🌐 Open Source week kicks off",
-  "🎶 Birds of a Feather vol. 2 in progress",
-];
-
-const WORKS = [
-  {
-    tag: "Open Source",
-    title: "flocky.dev Platform",
-    bg: "linear-gradient(135deg,#1c1710,#2d1f1f)",
-    desc: "The central hub for the FLOCKY Collective — open source, community driven. Built with React, Node.js, and PostgreSQL. Contributions welcome.",
-    link: "#",
-    featured: true,
-  },
-  {
-    tag: "Event",
-    title: "Global Flockathon",
-    bg: "linear-gradient(135deg,#0d1220,#1a2340)",
-    desc: "A 24h hackathon spanning timezones with 40+ projects shipped. Winners got featured in the zine and a spot in the collective.",
-    link: "#",
-  },
-  {
-    tag: "Art",
-    title: "Flocky Art Zine",
-    bg: "linear-gradient(135deg,#1a0a0a,#3d1515)",
-    desc: "A digital zine showcasing artwork, writing, and music from collective members. Published quarterly, always free.",
-    link: "#",
-  },
-  {
-    tag: "Web",
-    title: "Member Directory",
-    bg: "linear-gradient(135deg,#0e120e,#1f2e1f)",
-    desc: "A searchable, filterable directory of all FLOCKY collective members — skills, projects, and contact info in one place.",
-    link: "#",
-  },
-  {
-    tag: "Music",
-    title: "Birds of a Feather",
-    bg: "linear-gradient(135deg,#1a1510,#2e2010)",
-    desc: "A collaborative music project from 8 producers across 4 countries. Genre: ambient lo-fi meets glitchcore.",
-    link: "#",
-  },
-  {
-    tag: "Dev",
-    title: "Discord Bots",
-    bg: "linear-gradient(135deg,#100d1a,#1e1530)",
-    desc: "Custom bots powering the FLOCKY Discord: moderation, music rooms, showcase feeds, and the /vibe command.",
-    link: "#",
-  },
 ];
 
 /* ─────────────── STYLES ─────────────── */
@@ -149,21 +80,6 @@ body::before {
   pointer-events: none;
   z-index: 0;
 }
-
-#mrk-cursor {
-  position: fixed;
-  top: 0; left: 0;
-  z-index: 9999;
-  width: 8px; height: 8px;
-  pointer-events: none;
-  border-radius: 50%;
-  background: ${C.rose};
-  transform: translate(-50%, -50%);
-  transition: width .18s, height .18s, opacity .18s;
-  mix-blend-mode: normal;
-  box-shadow: 0 0 10px ${C.rose}, 0 0 20px rgba(201,149,108,.4);
-}
-#mrk-cursor.big { width: 32px; height: 32px; opacity: .6; }
 
 /* ── REVEAL / PAGE TRANSITIONS ── */
 .reveal {
@@ -406,132 +322,6 @@ section + section {
   border-top: 1px solid rgba(255,255,255,.05);
 }
 
-/* ── ACTIVITY TICKER ── */
-.ticker-wrapper {
-  overflow: hidden;
-  border-top: 1px solid rgba(255,255,255,.05);
-  border-bottom: 1px solid rgba(255,255,255,.05);
-  padding: .9rem 0;
-  background: rgba(10,10,18,.7);
-  backdrop-filter: blur(8px);
-}
-.ticker-track {
-  display: flex;
-  width: max-content;
-  animation: ticker 35s linear infinite;
-}
-.ticker-track:hover { animation-play-state: paused; }
-.ticker-item {
-  white-space: nowrap;
-  padding: 0 2.5rem;
-  font-family: ${F.mono};
-  font-size: .6rem;
-  letter-spacing: .1em;
-  color: ${C.smoke};
-  display: flex;
-  align-items: center;
-  gap: .75rem;
-  transition: color .2s;
-}
-.ticker-item:hover { color: ${C.cream}; }
-.ticker-dot {
-  width: 4px; height: 4px;
-  border-radius: 50%;
-  background: ${C.rose};
-  opacity: .5;
-  flex-shrink: 0;
-}
-
-/* ── MEMBERS ── */
-.members-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
-  gap: 1rem;
-  margin-top: 3rem;
-}
-.member-card {
-  padding: 1.6rem 1rem 1.4rem;
-  text-align: center;
-  border-radius: 16px;
-  border: 1px solid rgba(255,255,255,.06);
-  background: rgba(14,14,24,.7);
-  backdrop-filter: blur(8px);
-  transition: border-color .25s, transform .25s, box-shadow .25s;
-  cursor: default;
-}
-.member-card:hover {
-  border-color: rgba(201,149,108,.3);
-  transform: translateY(-4px);
-  box-shadow: 0 12px 40px rgba(0,0,0,.35);
-}
-.member-avatar {
-  width: 62px; height: 62px;
-  border-radius: 50%;
-  margin: 0 auto 1rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-family: ${F.display};
-  font-size: 1.5rem;
-  color: ${C.black};
-  letter-spacing: .04em;
-}
-
-/* ── PORTFOLIO MODAL ── */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  z-index: 9000;
-  background: rgba(4,4,10,.88);
-  backdrop-filter: blur(18px);
-  -webkit-backdrop-filter: blur(18px);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1.5rem;
-  animation: fadeIn .2s both;
-}
-.modal-box {
-  position: relative;
-  width: min(580px, 100%);
-  background: ${C.charcoal};
-  border: 1px solid rgba(201,149,108,.2);
-  border-radius: 20px;
-  overflow: hidden;
-  animation: fadeUp .3s both;
-}
-.modal-header {
-  height: 180px;
-  position: relative;
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-end;
-  padding: 1.5rem;
-}
-.modal-body {
-  padding: 1.75rem 2rem 2rem;
-}
-.modal-close {
-  position: absolute;
-  top: 1rem; right: 1rem;
-  width: 36px; height: 36px;
-  border-radius: 50%;
-  border: 1px solid rgba(255,255,255,.15);
-  background: rgba(8,8,16,.65);
-  color: ${C.cream};
-  font-size: 1.2rem;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: background .2s, border-color .2s;
-  line-height: 1;
-}
-.modal-close:hover {
-  background: rgba(201,149,108,.25);
-  border-color: rgba(201,149,108,.4);
-}
-
 /* ── JOIN CTA ── */
 .join-cta {
   position: relative;
@@ -589,7 +379,6 @@ section + section {
 @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
 @keyframes floatY { 0%,100% { transform:translateY(0); } 50% { transform:translateY(-8px); } }
 @keyframes glowPulse { 0%,100% { box-shadow:0 0 18px rgba(201,149,108,.4); } 50% { box-shadow:0 0 32px rgba(201,149,108,.7), 0 0 60px rgba(201,149,108,.25); } }
-@keyframes ticker { 0% { transform:translateX(0); } 100% { transform:translateX(-50%); } }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 820px) {
@@ -601,13 +390,10 @@ section + section {
   #hero { min-height: 92vh !important; }
   .sec-title { font-size: clamp(2.2rem, 13vw, 4.4rem); }
   .rt-row { flex-wrap: wrap; }
-  .members-grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
-  .modal-body { padding: 1.25rem 1.25rem 1.5rem; }
 }
 
 @media (hover: none), (pointer: coarse) {
-  body { cursor: auto; }
-  body::after, #mrk-cursor { display: none !important; }
+  body::after { display: none !important; }
 }
 `;
 
@@ -624,30 +410,6 @@ function InjectStyles() {
     return () => document.getElementById(id)?.remove();
   }, []);
   return null;
-}
-
-function Cursor() {
-  const ref = useRef(null);
-
-  useEffect(() => {
-    if (window.matchMedia("(hover: none), (pointer: coarse)").matches) return undefined;
-    const el = ref.current;
-    if (!el) return undefined;
-    const move = (e) => { el.style.left = `${e.clientX}px`; el.style.top = `${e.clientY}px`; };
-    const over = (e) => { if (e.target.closest("a,button,.hov")) el.classList.add("big"); };
-    const out = () => el.classList.remove("big");
-    window.addEventListener("mousemove", move);
-    document.addEventListener("mouseover", over);
-    document.addEventListener("mouseout", out);
-    return () => {
-      window.removeEventListener("mousemove", move);
-      document.removeEventListener("mouseover", over);
-      document.removeEventListener("mouseout", out);
-    };
-  }, []);
-
-  if (typeof window !== "undefined" && window.matchMedia("(hover: none), (pointer: coarse)").matches) return null;
-  return <div id="mrk-cursor" ref={ref} />;
 }
 
 function scrollTo(id) {
@@ -716,14 +478,14 @@ function Nav() {
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
-  const NAV_SECTIONS = ["portfolio", "skills", "members", "music", "contact"];
+  const NAV_SECTIONS = ["skills", "music", "contact"];
 
   return (
     <>
       <nav className={`mrk-nav${scrolled ? " scrolled" : ""}`}>
         <NavLink id="hero" className="nav-logo" onClick={close}>FLOCKY</NavLink>
         <ul className="nav-links">
-          {["portfolio", "music", "members", "contact"].map((s) => (
+          {NAV_SECTIONS.map((s) => (
             <li key={s}><NavLink id={s}>{s}</NavLink></li>
           ))}
         </ul>
@@ -873,129 +635,6 @@ function Hero() {
   );
 }
 
-/* ─────────────── ACTIVITY TICKER ─────────────── */
-
-function ActivityTicker() {
-  const doubled = [...ACTIVITY_ITEMS, ...ACTIVITY_ITEMS];
-  return (
-    <div className="ticker-wrapper">
-      <div className="ticker-track">
-        {doubled.map((item, i) => (
-          <div key={i} className="ticker-item">
-            <span className="ticker-dot" />
-            {item}
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
-
-/* ─────────────── PORTFOLIO ─────────────── */
-
-function PortfolioModal({ work, onClose }) {
-  // close on Escape
-  useEffect(() => {
-    const onKey = (e) => { if (e.key === "Escape") onClose(); };
-    window.addEventListener("keydown", onKey);
-    return () => window.removeEventListener("keydown", onKey);
-  }, [onClose]);
-
-  return (
-    <div
-      className="modal-backdrop"
-      onClick={onClose}
-      role="dialog"
-      aria-modal="true"
-    >
-      <div className="modal-box" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-header" style={{ background: work.bg }}>
-          <button className="modal-close" onClick={onClose} aria-label="Close">×</button>
-          <div className="tiny-link" style={{ color: C.rose, marginBottom: ".4rem" }}>{work.tag}</div>
-        </div>
-        <div className="modal-body">
-          <h2 style={{ margin: "0 0 .75rem", color: C.offwhite, fontFamily: F.display, fontSize: "clamp(1.8rem,6vw,2.6rem)", letterSpacing: ".02em" }}>
-            {work.title}
-          </h2>
-          <p className="muted" style={{ margin: "0 0 2rem", fontSize: ".9rem" }}>{work.desc}</p>
-          <a
-            href={work.link}
-            className="button hov"
-            style={{ background: C.rose, color: C.black, boxShadow: `0 0 18px rgba(201,149,108,.4)` }}
-          >
-            View Project →
-          </a>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Portfolio() {
-  const [active, setActive] = useState(null);
-
-  return (
-    <>
-      <section id="portfolio" className="section" style={{ background: C.black }}>
-        <Reveal>
-          <div className="sec-label">Featured Projects</div>
-          <h2 className="sec-title">PORT<br />FOLIO.</h2>
-        </Reveal>
-
-        <Reveal delay={100}>
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(230px, 1fr))",
-              gap: ".75rem",
-              marginTop: "3rem",
-            }}
-          >
-            {WORKS.map((work, index) => (
-              <BorderGlow
-                key={work.title}
-                className="hov"
-                backgroundColor={work.bg}
-                borderRadius={12}
-                glowColor="28 55 60"
-                colors={["#c9956c", "#8b5e3c", "#e8c4b0"]}
-                glowRadius={35}
-                glowIntensity={1.2}
-                edgeSensitivity={25}
-                animated
-                onClick={() => setActive(work)}
-                style={{
-                  gridColumn: work.featured ? "span 2" : undefined,
-                  minHeight: work.featured ? 320 : 190,
-                  cursor: "pointer",
-                }}
-              >
-                <article
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    justifyContent: "flex-end",
-                    padding: "1.4rem",
-                    height: "100%",
-                  }}
-                >
-                  <div className="tiny-link" style={{ color: C.rose }}>{work.tag}</div>
-                  <h3 style={{ margin: ".35rem 0 0", color: C.white }}>{work.title}</h3>
-                  <div style={{ marginTop: ".5rem", fontFamily: F.mono, fontSize: ".58rem", color: C.taupe, letterSpacing: ".08em" }}>
-                    Click to learn more →
-                  </div>
-                </article>
-              </BorderGlow>
-            ))}
-          </div>
-        </Reveal>
-      </section>
-
-      {active && <PortfolioModal work={active} onClose={() => setActive(null)} />}
-    </>
-  );
-}
-
 /* ─────────────── SKILLS ─────────────── */
 
 function Skills() {
@@ -1034,53 +673,9 @@ function Skills() {
   );
 }
 
-/* ─────────────── MEMBERS ─────────────── */
-
-function Members() {
-  return (
-    <section
-      id="members"
-      className="section"
-      style={{ background: C.black, borderTop: `1px solid ${C.ash}` }}
-    >
-      <Reveal>
-        <div className="sec-label">The Flock</div>
-        <h2 className="sec-title">MEET<br />THE CREW.</h2>
-        <p className="muted" style={{ maxWidth: 480, marginTop: "1.2rem" }}>
-          A distributed collective of creators from around the world. Each member brings something unique to the nest.
-        </p>
-      </Reveal>
-      <Reveal delay={120}>
-        <div className="members-grid">
-          {MEMBERS.map(({ id, name, role, initials, color }, i) => (
-            <div key={id} className="member-card reveal in" style={{ transitionDelay: `${i * 60}ms` }}>
-              <div className="member-avatar" style={{ background: color }}>
-                {initials}
-              </div>
-              <div style={{ fontFamily: F.sans, fontWeight: 700, color: C.offwhite, fontSize: ".95rem" }}>
-                {name}
-              </div>
-              <div
-                style={{
-                  marginTop: ".4rem",
-                  fontFamily: F.mono,
-                  fontSize: ".58rem",
-                  letterSpacing: ".1em",
-                  color: C.taupe,
-                  lineHeight: 1.6,
-                }}
-              >
-                {role}
-              </div>
-            </div>
-          ))}
-        </div>
-      </Reveal>
-    </section>
-  );
-}
-
 /* ─────────────── JOIN CTA ─────────────── */
+
+const DISCORD_INVITE = ""; // TODO: paste real https://discord.gg/... invite here
 
 function JoinCTA() {
   return (
@@ -1089,35 +684,37 @@ function JoinCTA() {
       style={{ background: C.charcoal, borderTop: `1px solid ${C.ash}`, textAlign: "center" }}
     >
       <Reveal>
-        <div className="sec-label">Open Community</div>
+        <div className="sec-label">Hang Out</div>
         <h2
           className="sec-title"
           style={{ fontSize: "clamp(3.5rem, 12vw, 10rem)", lineHeight: .88 }}
         >
-          JOIN<br />
+          FIND<br />
           <span style={{ fontFamily: F.serif, fontStyle: "italic", color: C.rose, fontSize: ".75em" }}>
-            the flock.
+            me online.
           </span>
         </h2>
         <p className="muted" style={{ maxWidth: 520, margin: "1.5rem auto 2.5rem" }}>
-          We are a collective of creators, builders, and dreamers. If you vibe with what we do — come hang out, contribute, and grow with us.
+          I build things, listen to music, and tinker with shaders. If any of that sounds fun — say hi.
         </p>
         <div style={{ display: "flex", gap: "1rem", justifyContent: "center", flexWrap: "wrap" }}>
-          <a
-            href="https://discord.gg/flocky"
-            target="_blank"
-            rel="noreferrer"
-            className="button hov"
-            style={{
-              background: C.rose,
-              color: C.black,
-              fontSize: ".75rem",
-              padding: "1rem 2.5rem",
-              boxShadow: `0 0 20px rgba(201,149,108,.4), 0 0 45px rgba(201,149,108,.15)`,
-            }}
-          >
-            Join Discord
-          </a>
+          {DISCORD_INVITE && (
+            <a
+              href={DISCORD_INVITE}
+              target="_blank"
+              rel="noreferrer"
+              className="button hov"
+              style={{
+                background: C.rose,
+                color: C.black,
+                fontSize: ".75rem",
+                padding: "1rem 2.5rem",
+                boxShadow: `0 0 20px rgba(201,149,108,.4), 0 0 45px rgba(201,149,108,.15)`,
+              }}
+            >
+              Join Discord
+            </a>
+          )}
           <a
             href="https://github.com/Sm4qkyy"
             target="_blank"
@@ -1386,13 +983,9 @@ export default function App() {
   return (
     <>
       <InjectStyles />
-      <Cursor />
       <Nav />
       <Hero />
-      <ActivityTicker />
-      <Portfolio />
       <Skills />
-      <Members />
       <JoinCTA />
       <Music />
       <Contact />
