@@ -131,7 +131,7 @@ body::before {
 }
 .nav-links a, .nav-cta, .tiny-link {
   font-family: ${F.mono};
-  font-size: .62rem;
+  font-size: .72rem;
   letter-spacing: .14em;
   text-transform: uppercase;
   color: ${C.taupe};
@@ -215,9 +215,9 @@ body::before {
 }
 .mobile-drawer-sub a {
   font-family: ${F.mono};
-  font-size: .62rem;
+  font-size: .72rem;
   letter-spacing: .18em;
-  font-size: .62rem;
+  font-size: .72rem;
   color: ${C.smoke};
 }
 
@@ -236,7 +236,7 @@ body::before {
   border: 1px solid rgba(201,149,108,.25);
   background: rgba(201,149,108,.07);
   font-family: ${F.mono};
-  font-size: .58rem;
+  font-size: .68rem;
   letter-spacing: .2em;
   text-transform: uppercase;
   color: ${C.rose};
@@ -287,7 +287,7 @@ body::before {
   cursor: pointer;
   touch-action: manipulation;
   font-family: ${F.mono};
-  font-size: .65rem;
+  font-size: .75rem;
   font-weight: 700;
   letter-spacing: .12em;
   text-transform: uppercase;
@@ -342,7 +342,7 @@ section + section {
 .skill-group { margin-bottom: 2.5rem; }
 .skill-group-label {
   font-family: ${F.mono};
-  font-size: .6rem;
+  font-size: .7rem;
   letter-spacing: .2em;
   text-transform: uppercase;
   color: ${C.rose};
@@ -359,7 +359,7 @@ section + section {
   border: 1px solid rgba(255,255,255,.1);
   background: rgba(255,255,255,.04);
   font-family: ${F.mono};
-  font-size: .65rem;
+  font-size: .75rem;
   letter-spacing: .06em;
   color: ${C.cream};
   transition: border-color .2s, background .2s, color .2s, transform .15s;
@@ -384,7 +384,7 @@ section + section {
 @media (max-width: 820px) {
   .nav-links { display: none; }
   .nav-logo { font-size: 1.4rem; }
-  .nav-cta { padding: .44rem .9rem; font-size: .58rem; }
+  .nav-cta { padding: .44rem .9rem; font-size: .68rem; }
   .mobile-menu-btn { display: flex; }
   .grid-2 { grid-template-columns: 1fr; }
   #hero { min-height: 92vh !important; }
@@ -478,7 +478,7 @@ function Nav() {
     return () => { document.body.style.overflow = ""; };
   }, [menuOpen]);
 
-  const NAV_SECTIONS = ["skills", "music", "contact"];
+  const NAV_SECTIONS = ["about", "skills", "music", "contact"];
 
   return (
     <>
@@ -582,7 +582,7 @@ function Hero() {
             background: "rgba(10,9,8,.6)",
             backdropFilter: "blur(8px)",
             fontFamily: F.mono,
-            fontSize: ".58rem",
+            fontSize: ".68rem",
             letterSpacing: ".12em",
             textTransform: "uppercase",
             color: C.smoke,
@@ -609,10 +609,6 @@ function Hero() {
           }}
         >
           FLOCKY
-          <br />
-          <span style={{ fontFamily: F.serif, fontStyle: "italic", color: C.rose, fontSize: ".68em" }}>
-            Collective
-          </span>
         </h1>
         <p className="muted" style={{ display: "flex", alignItems: "center", flexWrap: "wrap", gap: ".5rem", marginTop: "1.3rem", animation: "fadeUp .9s .6s both" }}>
           We are
@@ -631,6 +627,83 @@ function Hero() {
           />
         </p>
       </div>
+    </section>
+  );
+}
+
+/* ─────────────── ABOUT ─────────────── */
+
+function About() {
+  return (
+    <section
+      id="about"
+      className="section"
+      style={{ background: C.black, borderTop: `1px solid ${C.ash}`, textAlign: "center" }}
+    >
+      <Reveal>
+        <div className="sec-label">About</div>
+        <h2 className="sec-title">WHO<br />AM I?</h2>
+      </Reveal>
+      <Reveal delay={120}>
+        <div
+          style={{
+            maxWidth: 720,
+            margin: "3rem auto 0",
+            padding: "2.5rem 2rem",
+            borderRadius: 16,
+            border: `1px solid rgba(255,255,255,.07)`,
+            background: "rgba(14,14,24,.7)",
+            backdropFilter: "blur(8px)",
+          }}
+        >
+          <div
+            style={{
+              width: 88,
+              height: 88,
+              borderRadius: "50%",
+              margin: "0 auto 1.5rem",
+              background: `linear-gradient(135deg, ${C.rose}, ${C.burgundy})`,
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              fontFamily: F.display,
+              fontSize: "2rem",
+              color: C.black,
+              letterSpacing: ".05em",
+              boxShadow: `0 0 30px rgba(201,149,108,.25)`,
+            }}
+          >
+            FL
+          </div>
+          <h3
+            style={{
+              margin: "0 0 .25rem",
+              fontFamily: F.sans,
+              fontWeight: 700,
+              color: C.offwhite,
+              fontSize: "1.25rem",
+            }}
+          >
+            Flocky
+          </h3>
+          <div
+            style={{
+              fontFamily: F.mono,
+              fontSize: ".72rem",
+              letterSpacing: ".15em",
+              textTransform: "uppercase",
+              color: C.rose,
+              marginBottom: "1.25rem",
+            }}
+          >
+            Developer · Creator
+          </div>
+          <p className="muted" style={{ margin: 0, lineHeight: 1.8 }}>
+            I build things on the web — interfaces, shaders, side projects, and the occasional weird experiment.
+            Curious about the intersection of code, design, and music. Always tinkering.
+          </p>
+        </div>
+      </Reveal>
     </section>
   );
 }
@@ -675,7 +748,7 @@ function Skills() {
 
 /* ─────────────── JOIN CTA ─────────────── */
 
-const DISCORD_INVITE = ""; // TODO: paste real https://discord.gg/... invite here
+const DISCORD_INVITE = "https://discord.gg/2faKNKjDPv";
 
 function JoinCTA() {
   return (
@@ -861,7 +934,7 @@ function Music() {
             {activeRecent.length === 0 && <p className="muted">No recent tracks found yet.</p>}
             {activeRecent.map((item, index) => (
               <div key={`${item.played_at}-${index}`} className="rt-row">
-                <div style={{ width: 24, color: C.smoke, fontFamily: F.mono, fontSize: ".62rem", textAlign: "right", flexShrink: 0 }}>
+                <div style={{ width: 24, color: C.smoke, fontFamily: F.mono, fontSize: ".72rem", textAlign: "right", flexShrink: 0 }}>
                   {String(index + 1).padStart(2, "0")}
                 </div>
                 <div style={{ width: 42, height: 42, flexShrink: 0, overflow: "hidden", borderRadius: 6, background: C.ash }}>
@@ -871,11 +944,11 @@ function Music() {
                 </div>
                 <div style={{ minWidth: 0, flex: 1 }}>
                   <div className="line-clamp" style={{ color: C.cream, fontWeight: 700 }}>{item.track?.name}</div>
-                  <div className="line-clamp" style={{ color: C.taupe, fontFamily: F.mono, fontSize: ".58rem", marginTop: ".15rem" }}>
+                  <div className="line-clamp" style={{ color: C.taupe, fontFamily: F.mono, fontSize: ".68rem", marginTop: ".15rem" }}>
                     {item.track?.artists?.map((a) => a.name).join(", ")}
                   </div>
                 </div>
-                <div style={{ color: C.smoke, fontFamily: F.mono, fontSize: ".58rem", flexShrink: 0 }}>
+                <div style={{ color: C.smoke, fontFamily: F.mono, fontSize: ".68rem", flexShrink: 0 }}>
                   {timeAgo(new Date(item.played_at).getTime())}
                 </div>
               </div>
@@ -965,7 +1038,7 @@ function Footer() {
       }}
     >
       <div style={{ fontFamily: F.display, fontSize: "2.2rem", color: C.ash }}>FLOCKY</div>
-      <div style={{ color: C.smoke, fontFamily: F.mono, fontSize: ".58rem", letterSpacing: ".15em" }}>
+      <div style={{ color: C.smoke, fontFamily: F.mono, fontSize: ".68rem", letterSpacing: ".15em" }}>
         © {new Date().getFullYear()} FLOCKY Collective. All rights reserved.
       </div>
       <div style={{ display: "flex", gap: "1.3rem" }}>
@@ -985,9 +1058,10 @@ export default function App() {
       <InjectStyles />
       <Nav />
       <Hero />
+      <About />
       <Skills />
-      <JoinCTA />
       <Music />
+      <JoinCTA />
       <Contact />
       <Footer />
     </>
