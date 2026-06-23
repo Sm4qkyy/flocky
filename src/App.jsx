@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import MagicRings from "./MagicRings/MagicRings";
+import FloatingLines from "./FloatingLines/FloatingLines";
 
 /* ─────────────── TOKENS ─────────────── */
 
@@ -163,12 +163,12 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* shooting stars + spotlight */
-.shooting-stars {
+/* floating lines background + spotlight */
+.lines-bg {
   position: fixed;
   inset: 0;
-  z-index: 9996;
-  pointer-events: none;
+  z-index: 0;
+  opacity: .85;
 }
 .spotlight-cursor {
   position: fixed;
@@ -1277,124 +1277,26 @@ function SpotlightCursor() {
   return <div className="spotlight-cursor" ref={ref} aria-hidden="true" />;
 }
 
-/* ─────────────── SHOOTING STARS ─────────────── */
+/* ─────────────── FLOATING LINES BACKGROUND ─────────────── */
 
-function ShootingStars() {
-  const canvasRef = useRef(null);
-
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas) return undefined;
-    const ctx = canvas.getContext("2d");
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
-    let width = 0, height = 0;
-
-    const resize = () => {
-      width = window.innerWidth;
-      height = window.innerHeight;
-      canvas.width = Math.floor(width * dpr);
-      canvas.height = Math.floor(height * dpr);
-      canvas.style.width = `${width}px`;
-      canvas.style.height = `${height}px`;
-      ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
-    };
-    resize();
-    window.addEventListener("resize", resize);
-
-    let scrollY = 0;
-    let scrollMax = 1;
-    const updateScroll = () => {
-      scrollY = window.scrollY;
-      scrollMax = Math.max(1, document.documentElement.scrollHeight - window.innerHeight);
-    };
-    updateScroll();
-    window.addEventListener("scroll", updateScroll, { passive: true });
-
-    const stars = [];
-    const spawnStar = (scrollProgress) => {
-      const dir = Math.random() < 0.5 ? 1 : -1;
-      const angle = (18 + Math.random() * 32) * (Math.PI / 180);
-      const speed = 3.5 + Math.random() * 5.5;
-      const length = 70 + Math.random() * 140;
-      const scatterY = scrollProgress * height * 0.55;
-      const x = -120 + Math.random() * (width + 240);
-      const y = -40 - Math.random() * 60 - Math.random() * scatterY;
-      stars.push({
-        x, y,
-        vx: Math.cos(angle) * speed * dir,
-        vy: Math.sin(angle) * speed,
-        length,
-        life: 0,
-        maxLife: 90 + Math.random() * 80,
-        alpha: 0.55 + Math.random() * 0.45,
-      });
-    };
-
-    let lastEmit = 0;
-    let raf = 0;
-
-    const tick = (t) => {
-      const scrollProgress = Math.min(scrollY / scrollMax, 1);
-      const emitInterval = 180 + scrollProgress * 1100;
-      if (t - lastEmit > emitInterval) {
-        const burst = scrollProgress < 0.25 && Math.random() < 0.45 ? 2 : 1;
-        for (let i = 0; i < burst; i++) spawnStar(scrollProgress);
-        lastEmit = t;
-      }
-
-      ctx.clearRect(0, 0, width, height);
-
-      for (let i = stars.length - 1; i >= 0; i--) {
-        const s = stars[i];
-        s.x += s.vx;
-        s.y += s.vy;
-        s.life++;
-
-        if (s.life > s.maxLife || s.y > height + 200 || s.x < -300 || s.x > width + 300) {
-          stars.splice(i, 1);
-          continue;
-        }
-
-        const fadeIn = Math.min(s.life / 10, 1);
-        const fadeOut = Math.min((s.maxLife - s.life) / 22, 1);
-        const a = s.alpha * fadeIn * fadeOut;
-
-        const mag = Math.hypot(s.vx, s.vy) || 1;
-        const tailX = s.x - (s.vx / mag) * s.length;
-        const tailY = s.y - (s.vy / mag) * s.length;
-
-        const grad = ctx.createLinearGradient(s.x, s.y, tailX, tailY);
-        grad.addColorStop(0, `rgba(220, 235, 255, ${a})`);
-        grad.addColorStop(0.35, `rgba(136, 197, 255, ${a * 0.6})`);
-        grad.addColorStop(1, "rgba(136, 197, 255, 0)");
-
-        ctx.strokeStyle = grad;
-        ctx.lineWidth = 1.3;
-        ctx.lineCap = "round";
-        ctx.beginPath();
-        ctx.moveTo(s.x, s.y);
-        ctx.lineTo(tailX, tailY);
-        ctx.stroke();
-
-        ctx.fillStyle = `rgba(255, 255, 255, ${Math.min(a * 1.2, 1)})`;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, 1.3, 0, Math.PI * 2);
-        ctx.fill();
-      }
-
-      raf = requestAnimationFrame(tick);
-    };
-
-    raf = requestAnimationFrame(tick);
-
-    return () => {
-      cancelAnimationFrame(raf);
-      window.removeEventListener("resize", resize);
-      window.removeEventListener("scroll", updateScroll);
-    };
-  }, []);
-
-  return <canvas ref={canvasRef} className="shooting-stars" aria-hidden="true" />;
+function LinesBackground() {
+  return (
+    <div className="lines-bg" aria-hidden="true">
+      <FloatingLines
+        linesGradient={["#88c5ff", "#c4a5ff", "#88e0d4", "#3d7dc8"]}
+        enabledWaves={["top", "middle", "bottom"]}
+        lineCount={[10, 15, 20]}
+        lineDistance={[8, 6, 4]}
+        bendRadius={5.0}
+        bendStrength={-0.5}
+        interactive
+        parallax
+        parallaxStrength={0.18}
+        animationSpeed={0.9}
+        mixBlendMode="screen"
+      />
+    </div>
+  );
 }
 
 /* ─────────────── ICONS ─────────────── */
@@ -1860,8 +1762,8 @@ export default function App() {
     <>
       <InjectStyles />
       <Aurora />
+      <LinesBackground />
       <SpotlightCursor />
-      <ShootingStars />
       <Nav />
       <Hero />
       <Stats />
