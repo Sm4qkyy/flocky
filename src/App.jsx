@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
-import FloatingLines from "./FloatingLines/FloatingLines";
+import Particles from "./Particles/Particles";
 
 /* ─────────────── TOKENS ─────────────── */
 
@@ -92,7 +92,7 @@ const globalCss = `
 html, body { scroll-behavior: smooth; }
 body {
   margin: 0;
-  background: ${C.bg};
+  background: ${C.bgDeep};
   color: ${C.text};
   font-family: ${F.sans};
   overflow-x: hidden;
@@ -109,32 +109,32 @@ input, textarea { font: inherit; color: inherit; }
   inset: -10%;
   z-index: 0;
   pointer-events: none;
-  filter: blur(90px);
-  opacity: .55;
+  filter: blur(120px);
+  opacity: .14;
 }
 .aurora-blob {
   position: absolute;
   border-radius: 50%;
-  width: 50vw;
-  height: 50vw;
-  max-width: 800px;
-  max-height: 800px;
+  width: 46vw;
+  height: 46vw;
+  max-width: 720px;
+  max-height: 720px;
   mix-blend-mode: screen;
 }
 .aurora-blob.a {
-  background: radial-gradient(circle, rgba(136,197,255,.55), transparent 65%);
+  background: radial-gradient(circle, rgba(80,120,180,.5), transparent 65%);
   top: -10%;
   left: -10%;
   animation: drift1 28s ease-in-out infinite;
 }
 .aurora-blob.b {
-  background: radial-gradient(circle, rgba(196,165,255,.45), transparent 65%);
+  background: radial-gradient(circle, rgba(110,95,150,.42), transparent 65%);
   bottom: -10%;
   right: -10%;
   animation: drift2 32s ease-in-out infinite;
 }
 .aurora-blob.c {
-  background: radial-gradient(circle, rgba(136,224,212,.32), transparent 65%);
+  background: radial-gradient(circle, rgba(70,120,120,.3), transparent 65%);
   top: 30%;
   left: 35%;
   animation: drift3 36s ease-in-out infinite;
@@ -163,24 +163,23 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* floating lines background + spotlight */
-.lines-bg {
+/* particles background + spotlight */
+.particles-bg {
   position: fixed;
   inset: 0;
   z-index: 0;
-  opacity: .4;
-  will-change: opacity;
-  transition: opacity .15s linear;
+  pointer-events: none;
+  opacity: .7;
 }
 .spotlight-cursor {
   position: fixed;
   top: 0; left: 0;
-  width: 360px; height: 360px;
-  margin: -180px 0 0 -180px;
+  width: 320px; height: 320px;
+  margin: -160px 0 0 -160px;
   border-radius: 50%;
   pointer-events: none;
   z-index: 9995;
-  background: radial-gradient(circle, rgba(136,197,255,.16), transparent 60%);
+  background: radial-gradient(circle, rgba(120,160,210,.07), transparent 62%);
   mix-blend-mode: screen;
   transition: opacity .3s;
 }
@@ -1279,39 +1278,23 @@ function SpotlightCursor() {
   return <div className="spotlight-cursor" ref={ref} aria-hidden="true" />;
 }
 
-/* ─────────────── FLOATING LINES BACKGROUND ─────────────── */
+/* ─────────────── PARTICLES BACKGROUND ─────────────── */
 
-function LinesBackground() {
-  const ref = useRef(null);
-  const MAX_OPACITY = 0.4;
-
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return undefined;
-    const onScroll = () => {
-      // Fade from full down to 0 over the first viewport of scrolling.
-      const fade = Math.max(0, 1 - window.scrollY / (window.innerHeight * 0.85));
-      el.style.opacity = `${MAX_OPACITY * fade}`;
-    };
-    onScroll();
-    window.addEventListener("scroll", onScroll, { passive: true });
-    return () => window.removeEventListener("scroll", onScroll);
-  }, []);
-
+function ParticlesBackground() {
+  const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1;
   return (
-    <div className="lines-bg" ref={ref} aria-hidden="true">
-      <FloatingLines
-        linesGradient={["#88c5ff", "#c4a5ff", "#88e0d4", "#3d7dc8"]}
-        enabledWaves={["top", "middle", "bottom"]}
-        lineCount={[8, 12, 16]}
-        lineDistance={[8, 6, 4]}
-        bendRadius={5.0}
-        bendStrength={-0.5}
-        interactive
-        parallax
-        parallaxStrength={0.18}
-        animationSpeed={0.9}
-        mixBlendMode="screen"
+    <div className="particles-bg" aria-hidden="true">
+      <Particles
+        particleColors={["#3f5d8a", "#5b4f78", "#8aa0c8"]}
+        particleCount={170}
+        particleSpread={16}
+        speed={0.06}
+        particleBaseSize={70}
+        sizeRandomness={1}
+        alphaParticles
+        disableRotation={false}
+        moveParticlesOnHover={false}
+        pixelRatio={dpr}
       />
     </div>
   );
@@ -1780,7 +1763,7 @@ export default function App() {
     <>
       <InjectStyles />
       <Aurora />
-      <LinesBackground />
+      <ParticlesBackground />
       <SpotlightCursor />
       <Nav />
       <Hero />
