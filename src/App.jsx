@@ -168,7 +168,9 @@ body::after {
   position: fixed;
   inset: 0;
   z-index: 0;
-  opacity: .85;
+  opacity: .4;
+  will-change: opacity;
+  transition: opacity .15s linear;
 }
 .spotlight-cursor {
   position: fixed;
@@ -1280,12 +1282,28 @@ function SpotlightCursor() {
 /* ─────────────── FLOATING LINES BACKGROUND ─────────────── */
 
 function LinesBackground() {
+  const ref = useRef(null);
+  const MAX_OPACITY = 0.4;
+
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return undefined;
+    const onScroll = () => {
+      // Fade from full down to 0 over the first viewport of scrolling.
+      const fade = Math.max(0, 1 - window.scrollY / (window.innerHeight * 0.85));
+      el.style.opacity = `${MAX_OPACITY * fade}`;
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
-    <div className="lines-bg" aria-hidden="true">
+    <div className="lines-bg" ref={ref} aria-hidden="true">
       <FloatingLines
         linesGradient={["#88c5ff", "#c4a5ff", "#88e0d4", "#3d7dc8"]}
         enabledWaves={["top", "middle", "bottom"]}
-        lineCount={[10, 15, 20]}
+        lineCount={[8, 12, 16]}
         lineDistance={[8, 6, 4]}
         bendRadius={5.0}
         bendStrength={-0.5}
