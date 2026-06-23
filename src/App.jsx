@@ -59,6 +59,7 @@ const PROJECTS = [
     desc: "Live booking bot for a car rental — n8n + Claude, real-time pricing.",
     link: GITHUB_URL,
     accent: "#88c5ff",
+    preview: "chat",
   },
   {
     name: "FLOCKY Site",
@@ -66,6 +67,7 @@ const PROJECTS = [
     desc: "This site. React + Vite, custom WebGL shaders, canvas particles.",
     link: GITHUB_URL,
     accent: "#c4a5ff",
+    preview: "browser",
   },
   {
     name: "MARKPC Telegram",
@@ -73,6 +75,7 @@ const PROJECTS = [
     desc: "Telegram bot that controls a Windows PC: screenshot, lock, sleep.",
     link: GITHUB_URL,
     accent: "#88e0d4",
+    preview: "terminal",
   },
 ];
 
@@ -601,19 +604,17 @@ body::after {
   flex: 1;
   border-radius: 12px;
   margin-bottom: 1.2rem;
-  background:
-    repeating-linear-gradient(45deg, rgba(136,197,255,.04) 0 12px, transparent 12px 24px),
-    radial-gradient(ellipse at center, color-mix(in srgb, var(--accent) 12%, transparent), rgba(8,12,28,.65));
+  background: rgba(8,12,28,.65);
   border: 1px solid ${C.border};
   overflow: hidden;
-  display: grid;
-  place-items: center;
-  font-family: ${F.display};
-  font-weight: 700;
-  font-size: 3rem;
-  color: rgba(255,255,255,.06);
-  letter-spacing: -.04em;
   transform: translateZ(20px);
+}
+.preview-svg {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  display: block;
 }
 .tilt-tag {
   display: inline-block;
@@ -1475,6 +1476,98 @@ function TechStack() {
   );
 }
 
+/* ─────────────── PROJECT PREVIEW THUMBNAILS ─────────────── */
+
+function ProjectPreview({ type, accent }) {
+  if (type === "chat") {
+    return (
+      <svg className="preview-svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="pv-chat" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor={accent} stopOpacity="0.22" />
+            <stop offset="1" stopColor="#070b1c" stopOpacity="0.95" />
+          </linearGradient>
+        </defs>
+        <rect width="320" height="200" fill="url(#pv-chat)" />
+        {/* incoming bubble */}
+        <rect x="26" y="40" rx="13" width="150" height="36" fill="rgba(255,255,255,0.08)" />
+        <rect x="40" y="52" width="92" height="5" rx="2.5" fill="rgba(255,255,255,0.4)" />
+        <rect x="40" y="63" width="58" height="5" rx="2.5" fill="rgba(255,255,255,0.22)" />
+        {/* outgoing bubble (accent) */}
+        <rect x="144" y="96" rx="13" width="150" height="36" fill={accent} fillOpacity="0.85" />
+        <rect x="158" y="108" width="104" height="5" rx="2.5" fill="rgba(7,11,28,0.55)" />
+        <rect x="158" y="119" width="72" height="5" rx="2.5" fill="rgba(7,11,28,0.35)" />
+        {/* small incoming bubble */}
+        <rect x="26" y="150" rx="13" width="112" height="30" fill="rgba(255,255,255,0.08)" />
+        <rect x="40" y="162" width="74" height="5" rx="2.5" fill="rgba(255,255,255,0.32)" />
+        {/* car glyph */}
+        <g transform="translate(244,30)" stroke={accent} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M2 20 L7 9 L33 9 L38 20" />
+          <rect x="-1" y="20" width="42" height="13" rx="4" />
+          <circle cx="11" cy="35" r="3.5" fill="#070b1c" />
+          <circle cx="29" cy="35" r="3.5" fill="#070b1c" />
+        </g>
+      </svg>
+    );
+  }
+
+  if (type === "browser") {
+    return (
+      <svg className="preview-svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="pv-br" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0" stopColor={accent} stopOpacity="0.2" />
+            <stop offset="1" stopColor="#070b1c" stopOpacity="0.96" />
+          </linearGradient>
+          <linearGradient id="pv-wordmark" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0" stopColor="#ffffff" />
+            <stop offset="1" stopColor={accent} />
+          </linearGradient>
+        </defs>
+        <rect width="320" height="200" fill="url(#pv-br)" />
+        {/* browser chrome */}
+        <rect x="0" y="0" width="320" height="28" fill="rgba(255,255,255,0.05)" />
+        <circle cx="18" cy="14" r="4" fill="rgba(255,255,255,0.25)" />
+        <circle cx="32" cy="14" r="4" fill="rgba(255,255,255,0.18)" />
+        <circle cx="46" cy="14" r="4" fill="rgba(255,255,255,0.12)" />
+        <rect x="64" y="8" width="234" height="12" rx="6" fill="rgba(255,255,255,0.05)" />
+        {/* hero wordmark */}
+        <text x="160" y="118" textAnchor="middle" fontFamily="Sora, sans-serif" fontWeight="700" fontSize="44" letterSpacing="1" fill="url(#pv-wordmark)">FLOCKY</text>
+        <rect x="120" y="138" width="80" height="5" rx="2.5" fill="rgba(255,255,255,0.18)" />
+        <rect x="135" y="150" width="50" height="5" rx="2.5" fill="rgba(255,255,255,0.1)" />
+      </svg>
+    );
+  }
+
+  // terminal
+  return (
+    <svg className="preview-svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <linearGradient id="pv-term" x1="0" y1="0" x2="1" y2="1">
+          <stop offset="0" stopColor={accent} stopOpacity="0.2" />
+          <stop offset="1" stopColor="#070b1c" stopOpacity="0.96" />
+        </linearGradient>
+      </defs>
+      <rect width="320" height="200" fill="url(#pv-term)" />
+      {/* window */}
+      <rect x="34" y="34" width="252" height="132" rx="10" fill="rgba(7,11,28,0.75)" stroke="rgba(255,255,255,0.08)" />
+      <rect x="34" y="34" width="252" height="26" rx="10" fill="rgba(255,255,255,0.05)" />
+      <circle cx="50" cy="47" r="3.5" fill="rgba(255,255,255,0.25)" />
+      <circle cx="62" cy="47" r="3.5" fill="rgba(255,255,255,0.18)" />
+      <circle cx="74" cy="47" r="3.5" fill="rgba(255,255,255,0.12)" />
+      {/* terminal lines */}
+      <text x="48" y="84" fontFamily="'Space Mono', monospace" fontSize="11" fill={accent}>&gt; <tspan fill="rgba(255,255,255,0.65)">/screenshot</tspan></text>
+      <text x="48" y="104" fontFamily="'Space Mono', monospace" fontSize="11" fill="rgba(255,255,255,0.4)">  capturing display…</text>
+      <text x="48" y="124" fontFamily="'Space Mono', monospace" fontSize="11" fill={accent}>&gt; <tspan fill="rgba(255,255,255,0.65)">/lock</tspan></text>
+      <text x="48" y="144" fontFamily="'Space Mono', monospace" fontSize="11" fill="rgba(255,255,255,0.4)">  pc locked ✓</text>
+      {/* telegram paper plane */}
+      <g transform="translate(236,96)" fill={accent} opacity="0.9">
+        <path d="M40 2 L2 20 L16 24 L20 40 L26 28 L38 38 Z" />
+      </g>
+    </svg>
+  );
+}
+
 /* ─────────────── PROJECTS ─────────────── */
 
 function Projects() {
@@ -1487,7 +1580,9 @@ function Projects() {
         <div className="projects-grid">
           {PROJECTS.map((p) => (
             <TiltCard key={p.name} accent={p.accent}>
-              <div className="tilt-preview">{p.name.split(" ")[0]}</div>
+              <div className="tilt-preview">
+                <ProjectPreview type={p.preview} accent={p.accent} />
+              </div>
               <div>
                 <div className="tilt-tag">{p.tag}</div>
                 <h3 className="tilt-title">{p.name}</h3>
