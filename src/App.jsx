@@ -36,10 +36,8 @@ const ROLES = [
 ];
 
 const TECH = [
-  "react", "typescript", "javascript", "nodedotjs", "python", "rust",
-  "vite", "tailwindcss", "css", "html5", "git", "github",
-  "vercel", "cloudflare", "docker", "linux", "postgresql", "mongodb",
-  "figma", "blender", "threedotjs", "nextdotjs", "express", "npm",
+  "react", "javascript", "typescript", "nodedotjs", "python", "vite",
+  "css", "html5", "git", "github", "vercel", "npm", "docker", "linux",
 ];
 
 const PROJECTS = [
@@ -713,8 +711,8 @@ function About() {
 /* ─────────────── STACK ─────────────── */
 
 function Stack() {
-  const a = useMemo(() => TECH.slice(0, 12), []);
-  const b = useMemo(() => TECH.slice(12), []);
+  const a = useMemo(() => TECH, []);
+  const b = useMemo(() => [...TECH].reverse(), []);
   return (
     <section id="stack" className="section">
       <Reveal>
