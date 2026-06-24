@@ -37,7 +37,7 @@ const ROLES = [
 
 const TECH = [
   "react", "typescript", "javascript", "nodedotjs", "python", "rust",
-  "vite", "tailwindcss", "css3", "html5", "git", "github",
+  "vite", "tailwindcss", "css", "html5", "git", "github",
   "vercel", "cloudflare", "docker", "linux", "postgresql", "mongodb",
   "figma", "blender", "threedotjs", "nextdotjs", "express", "npm",
 ];
@@ -302,10 +302,10 @@ body::after {
 
 /* ── STACK ── */
 .tech-marquee { position: relative; overflow: hidden; -webkit-mask-image: linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); mask-image: linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); }
-.tech-track { display: flex; gap: 1rem; width: max-content; animation: marquee 34s linear infinite; padding: 1rem 0; }
+.tech-track { display: flex; width: max-content; animation: marquee 34s linear infinite; padding: 1rem 0; }
 .tech-track.rev { animation: marquee-rev 40s linear infinite; }
 .tech-tile {
-  flex-shrink: 0; width: 84px; height: 84px; display: grid; place-items: center;
+  flex-shrink: 0; width: 84px; height: 84px; margin-right: 1rem; display: grid; place-items: center;
   border: 2px solid ${C.ink2}; background: ${C.ink}; transition: border-color .2s, background .2s, transform .15s;
 }
 .tech-tile:hover { border-color: ${C.red}; background: ${C.black}; transform: translateY(-4px); }
