@@ -997,7 +997,10 @@ body::after {
   width: 16px;
   z-index: 940;
   pointer-events: none;
+  opacity: 0;
+  transition: opacity .45s ease;
 }
+.scroll-rail.visible { opacity: 1; pointer-events: auto; }
 .scroll-rail-track {
   position: absolute;
   left: 50%;
@@ -1030,6 +1033,22 @@ body::after {
   background: ${C.accentBright};
   box-shadow: 0 0 10px ${C.accent}, 0 0 22px rgba(136,197,255,.55);
 }
+.scroll-rail-dot-label {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: ${F.mono};
+  font-size: .6rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: ${C.text};
+  background: rgba(13,18,38,.95);
+  border: 1px solid ${C.borderSoft};
+  padding: .3rem .6rem;
+  border-radius: 6px;
+  white-space: nowrap;
+}
 .scroll-rail-tick {
   position: absolute;
   left: 50%;
@@ -1041,7 +1060,6 @@ body::after {
   transform: translate(-50%, -50%);
   background: rgba(136,197,255,.22);
   border: 1px solid rgba(136,197,255,.4);
-  pointer-events: auto;
   cursor: pointer;
   transition: background .2s, transform .2s, box-shadow .2s, border-color .2s;
 }
@@ -1071,8 +1089,7 @@ body::after {
   pointer-events: none;
   transition: opacity .2s;
 }
-.scroll-rail-tick:hover .scroll-rail-tick-label,
-.scroll-rail-tick.active .scroll-rail-tick-label { opacity: 1; }
+.scroll-rail-tick:hover .scroll-rail-tick-label { opacity: 1; }
 @media (max-width: 900px) {
   .scroll-rail { right: 10px; width: 12px; }
   .scroll-rail-track { top: 16vh; height: 62vh; }
@@ -1941,11 +1958,22 @@ const RAIL_SECTIONS = [
 ];
 
 function ScrollRail() {
+  const railRef = useRef(null);
   const fillRef = useRef(null);
   const dotRef = useRef(null);
   const topsRef = useRef([]);
+  const idleRef = useRef(null);
   const [fracs, setFracs] = useState([]);
   const [active, setActive] = useState(0);
+
+  const show = useCallback(() => {
+    const rail = railRef.current;
+    if (rail) rail.classList.add("visible");
+    if (idleRef.current) clearTimeout(idleRef.current);
+    idleRef.current = setTimeout(() => {
+      railRef.current?.classList.remove("visible");
+    }, 1300);
+  }, []);
 
   useEffect(() => {
     const measure = () => {
@@ -1973,6 +2001,7 @@ function ScrollRail() {
         if (topsRef.current[i] <= mark) idx = i;
       }
       setActive((prev) => (prev === idx ? prev : idx));
+      show();
     };
 
     measure();
@@ -1984,16 +2013,27 @@ function ScrollRail() {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", measure);
       clearTimeout(t);
+      if (idleRef.current) clearTimeout(idleRef.current);
     };
-  }, []);
+  }, [show]);
 
   const go = (id) => {
     const el = document.getElementById(id);
     if (el) el.scrollIntoView({ behavior: "smooth" });
   };
 
+  const keepVisible = () => {
+    railRef.current?.classList.add("visible");
+    if (idleRef.current) clearTimeout(idleRef.current);
+  };
+
   return (
-    <div className="scroll-rail">
+    <div
+      className="scroll-rail"
+      ref={railRef}
+      onMouseEnter={keepVisible}
+      onMouseLeave={show}
+    >
       <div className="scroll-rail-track">
         <div className="scroll-rail-fill" ref={fillRef} />
         {RAIL_SECTIONS.map(([id, label], i) => (
@@ -2008,7 +2048,9 @@ function ScrollRail() {
             <span className="scroll-rail-tick-label">{label}</span>
           </button>
         ))}
-        <div className="scroll-rail-dot" ref={dotRef} />
+        <div className="scroll-rail-dot" ref={dotRef}>
+          <span className="scroll-rail-dot-label">{RAIL_SECTIONS[active]?.[1]}</span>
+        </div>
       </div>
     </div>
   );
