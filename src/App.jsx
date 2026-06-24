@@ -988,6 +988,95 @@ body::after {
 }
 .dock-item:hover .dock-tooltip { opacity: 1; }
 
+/* ── SCROLL RAIL ── */
+.scroll-rail {
+  position: fixed;
+  right: 22px;
+  top: 0;
+  height: 100vh;
+  width: 16px;
+  z-index: 940;
+  pointer-events: none;
+}
+.scroll-rail-track {
+  position: absolute;
+  left: 50%;
+  top: 14vh;
+  height: 72vh;
+  width: 2px;
+  transform: translateX(-50%);
+  background: rgba(136,197,255,.12);
+  border-radius: 2px;
+}
+.scroll-rail-fill {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
+  transform-origin: top;
+  transform: scaleY(0);
+  background: linear-gradient(180deg, ${C.accent}, ${C.violet});
+  border-radius: 2px;
+}
+.scroll-rail-dot {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: ${C.accentBright};
+  box-shadow: 0 0 10px ${C.accent}, 0 0 22px rgba(136,197,255,.55);
+}
+.scroll-rail-tick {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: 8px;
+  height: 8px;
+  padding: 0;
+  border-radius: 50%;
+  transform: translate(-50%, -50%);
+  background: rgba(136,197,255,.22);
+  border: 1px solid rgba(136,197,255,.4);
+  pointer-events: auto;
+  cursor: pointer;
+  transition: background .2s, transform .2s, box-shadow .2s, border-color .2s;
+}
+.scroll-rail-tick:hover { border-color: ${C.accent}; transform: translate(-50%, -50%) scale(1.3); }
+.scroll-rail-tick.active {
+  background: ${C.accent};
+  border-color: ${C.accent};
+  box-shadow: 0 0 10px ${C.accent};
+  transform: translate(-50%, -50%) scale(1.3);
+}
+.scroll-rail-tick-label {
+  position: absolute;
+  right: calc(100% + 12px);
+  top: 50%;
+  transform: translateY(-50%);
+  font-family: ${F.mono};
+  font-size: .6rem;
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: ${C.text};
+  background: rgba(13,18,38,.95);
+  border: 1px solid ${C.borderSoft};
+  padding: .3rem .6rem;
+  border-radius: 6px;
+  white-space: nowrap;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .2s;
+}
+.scroll-rail-tick:hover .scroll-rail-tick-label,
+.scroll-rail-tick.active .scroll-rail-tick-label { opacity: 1; }
+@media (max-width: 900px) {
+  .scroll-rail { display: none; }
+}
+
 /* ── FOOTER ── */
 .footer {
   position: relative;
@@ -1839,6 +1928,90 @@ function Footer() {
   );
 }
 
+/* ─────────────── SCROLL RAIL ─────────────── */
+
+const RAIL_SECTIONS = [
+  ["hero", "About"],
+  ["tech", "Stack"],
+  ["projects", "Work"],
+  ["music", "Music"],
+  ["contact", "Contact"],
+];
+
+function ScrollRail() {
+  const fillRef = useRef(null);
+  const dotRef = useRef(null);
+  const topsRef = useRef([]);
+  const [fracs, setFracs] = useState([]);
+  const [active, setActive] = useState(0);
+
+  useEffect(() => {
+    const measure = () => {
+      const max = (document.documentElement.scrollHeight - window.innerHeight) || 1;
+      const tops = [];
+      const fr = [];
+      RAIL_SECTIONS.forEach(([id]) => {
+        const el = document.getElementById(id);
+        const top = el ? el.offsetTop : 0;
+        tops.push(top);
+        fr.push(Math.min(Math.max(top / max, 0), 1));
+      });
+      topsRef.current = tops;
+      setFracs(fr);
+    };
+
+    const onScroll = () => {
+      const max = (document.documentElement.scrollHeight - window.innerHeight) || 1;
+      const p = Math.min(Math.max(window.scrollY / max, 0), 1);
+      if (fillRef.current) fillRef.current.style.transform = `scaleY(${p})`;
+      if (dotRef.current) dotRef.current.style.top = `${p * 100}%`;
+      const mark = window.scrollY + window.innerHeight * 0.35;
+      let idx = 0;
+      for (let i = 0; i < topsRef.current.length; i++) {
+        if (topsRef.current[i] <= mark) idx = i;
+      }
+      setActive((prev) => (prev === idx ? prev : idx));
+    };
+
+    measure();
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    window.addEventListener("resize", measure);
+    const t = setTimeout(measure, 800); // re-measure after fonts/images settle
+    return () => {
+      window.removeEventListener("scroll", onScroll);
+      window.removeEventListener("resize", measure);
+      clearTimeout(t);
+    };
+  }, []);
+
+  const go = (id) => {
+    const el = document.getElementById(id);
+    if (el) el.scrollIntoView({ behavior: "smooth" });
+  };
+
+  return (
+    <div className="scroll-rail">
+      <div className="scroll-rail-track">
+        <div className="scroll-rail-fill" ref={fillRef} />
+        {RAIL_SECTIONS.map(([id, label], i) => (
+          <button
+            key={id}
+            type="button"
+            className={`scroll-rail-tick${i === active ? " active" : ""}`}
+            style={{ top: `${(fracs[i] ?? 0) * 100}%` }}
+            onClick={() => go(id)}
+            aria-label={label}
+          >
+            <span className="scroll-rail-tick-label">{label}</span>
+          </button>
+        ))}
+        <div className="scroll-rail-dot" ref={dotRef} />
+      </div>
+    </div>
+  );
+}
+
 /* ─────────────── AURORA BG ─────────────── */
 
 function Aurora() {
@@ -1868,6 +2041,7 @@ export default function App() {
       <Spotify />
       <Contact />
       <Footer />
+      <ScrollRail />
       <Dock />
     </>
   );
