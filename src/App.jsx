@@ -1,45 +1,35 @@
 import { useEffect, useRef, useState, useCallback, useMemo } from "react";
 import Particles from "./Particles/Particles";
 
-/* ─────────────── TOKENS ─────────────── */
+/* ─────────────── PALETTE — FACE · МОЙ КАЛАШНИКОВ ─────────────── */
 
 const C = {
-  bg: "#060a1a",
-  bgDeep: "#04071a",
-  bgAlt: "#0a0f24",
-  surface: "rgba(16, 22, 44, 0.55)",
-  surfaceSolid: "#0d1226",
-  border: "rgba(136, 197, 255, 0.08)",
-  borderSoft: "rgba(136, 197, 255, 0.18)",
-  borderStrong: "rgba(136, 197, 255, 0.32)",
-  text: "#dbe9ff",
-  textBright: "#ffffff",
-  textMuted: "#5a6582",
-  textSubtle: "#7d8db0",
-  accent: "#88c5ff",
-  accentBright: "#aedcff",
-  accentDeep: "#3d7dc8",
-  violet: "#c4a5ff",
-  cyan: "#88e0d4",
-  green: "#1db954",
+  black: "#0b0b0b",
+  ink: "#141414",
+  ink2: "#1c1c1c",
+  red: "#e10600",
+  redBright: "#ff2b1c",
+  redDeep: "#9c0400",
+  cream: "#efe7d6",
+  creamDim: "#b3aa97",
+  creamFaint: "#6f6757",
 };
 
 const F = {
-  display: "'Sora', 'Plus Jakarta Sans', sans-serif",
-  sans: "'Plus Jakarta Sans', 'Inter', sans-serif",
+  display: "'Anton', 'Oswald', sans-serif",
+  cond: "'Oswald', sans-serif",
   mono: "'Space Mono', monospace",
 };
 
 const GITHUB_URL = "https://github.com/Sm4qkyy";
 const DISCORD_INVITE = "https://discord.gg/2faKNKjDPv";
 const EMAIL = "flocky88@outlook.com";
-const DISCORD_USERNAME = "flocky._";
 
 /* ─────────────── DATA ─────────────── */
 
 const ROLES = [
   { label: "Software Development", icon: "code" },
-  { label: "Full Stack Web Dev", icon: "web" },
+  { label: "Full Stack Web", icon: "web" },
   { label: "Creative Coding", icon: "spark" },
   { label: "3D & Shaders", icon: "cube" },
   { label: "Music & Audio", icon: "wave" },
@@ -58,23 +48,23 @@ const PROJECTS = [
     tag: "WhatsApp + AI",
     desc: "Live booking bot for a car rental — n8n + Claude, real-time pricing.",
     link: GITHUB_URL,
-    accent: "#88c5ff",
+    accent: "#e10600",
     preview: "chat",
   },
   {
     name: "FLOCKY Site",
     tag: "Portfolio",
-    desc: "This site. React + Vite, custom WebGL shaders, canvas particles.",
+    desc: "This site. React + Vite, WebGL particles, full constructivist redesign.",
     link: GITHUB_URL,
-    accent: "#c4a5ff",
+    accent: "#efe7d6",
     preview: "browser",
   },
   {
     name: "MARKPC Telegram",
-    tag: "Remote control",
+    tag: "Remote Control",
     desc: "Telegram bot that controls a Windows PC: screenshot, lock, sleep.",
     link: GITHUB_URL,
-    accent: "#88e0d4",
+    accent: "#ff2b1c",
     preview: "terminal",
   },
 ];
@@ -82,22 +72,24 @@ const PROJECTS = [
 const STATS = [
   { label: "Years coding", value: 5, suffix: "+" },
   { label: "Projects shipped", value: 24, suffix: "" },
-  { label: "Coffees consumed", value: 9000, suffix: "+" },
+  { label: "Coffees", value: 9000, suffix: "+" },
   { label: "Hours debugging", value: 2400, suffix: "" },
 ];
+
+const SLOGANS = ["FLOCKY", "DEVELOPER", "CREATOR", "CODE", "SHADERS", "MUSIC", "SHIP IT"];
 
 /* ─────────────── GLOBAL CSS ─────────────── */
 
 const globalCss = `
-@import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Anton&family=Oswald:wght@300;400;500;600;700&family=Space+Mono:wght@400;700&display=swap');
 
 *, *::before, *::after { box-sizing: border-box; }
 html, body { scroll-behavior: smooth; }
 body {
   margin: 0;
-  background: ${C.bgDeep};
-  color: ${C.text};
-  font-family: ${F.sans};
+  background: ${C.black};
+  color: ${C.cream};
+  font-family: ${F.cond};
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
 }
@@ -105,1050 +97,339 @@ a { color: inherit; text-decoration: none; }
 button { font: inherit; cursor: pointer; }
 img { display: block; max-width: 100%; }
 input, textarea { font: inherit; color: inherit; }
+::selection { background: ${C.red}; color: ${C.cream}; }
 
-/* ── AURORA BACKDROP ── */
-.aurora {
-  position: fixed;
-  inset: -10%;
-  z-index: 0;
-  pointer-events: none;
-  filter: blur(120px);
-  opacity: .14;
+/* ── BACKGROUND LAYERS ── */
+.particles-bg {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none; opacity: .5;
 }
-.aurora-blob {
-  position: absolute;
-  border-radius: 50%;
-  width: 46vw;
-  height: 46vw;
-  max-width: 720px;
-  max-height: 720px;
-  mix-blend-mode: screen;
-}
-.aurora-blob.a {
-  background: radial-gradient(circle, rgba(80,120,180,.5), transparent 65%);
-  top: -10%;
-  left: -10%;
-  animation: drift1 28s ease-in-out infinite;
-}
-.aurora-blob.b {
-  background: radial-gradient(circle, rgba(110,95,150,.42), transparent 65%);
-  bottom: -10%;
-  right: -10%;
-  animation: drift2 32s ease-in-out infinite;
-}
-.aurora-blob.c {
-  background: radial-gradient(circle, rgba(70,120,120,.3), transparent 65%);
-  top: 30%;
-  left: 35%;
-  animation: drift3 36s ease-in-out infinite;
-}
-@keyframes drift1 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(18vw, 12vh) scale(1.15); }
-}
-@keyframes drift2 {
-  0%, 100% { transform: translate(0, 0) scale(1); }
-  50% { transform: translate(-14vw, -16vh) scale(.9); }
-}
-@keyframes drift3 {
-  0%, 100% { transform: translate(0, 0) scale(.95); }
-  50% { transform: translate(8vw, -10vh) scale(1.1); }
-}
-
-/* grain */
-body::after {
+.bg-beams { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.bg-beams::before {
   content: "";
-  position: fixed;
-  inset: 0;
-  z-index: 9997;
-  pointer-events: none;
-  opacity: .04;
+  position: absolute; inset: -60%;
+  background: repeating-linear-gradient(118deg, transparent 0 86px, rgba(225,6,0,.05) 86px 88px);
+  animation: beamShift 22s linear infinite;
+}
+@keyframes beamShift { to { transform: translateX(120px); } }
+
+.bg-vignette {
+  position: fixed; inset: 0; z-index: 0; pointer-events: none;
+  background: radial-gradient(ellipse at 50% 0%, rgba(225,6,0,.10), transparent 55%),
+              radial-gradient(ellipse at 50% 120%, rgba(0,0,0,.85), transparent 60%);
+}
+body::after {
+  content: ""; position: fixed; inset: 0; z-index: 9997; pointer-events: none; opacity: .06;
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* particles background + spotlight */
-.particles-bg {
-  position: fixed;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  opacity: .7;
-}
-.spotlight-cursor {
-  position: fixed;
-  top: 0; left: 0;
-  width: 320px; height: 320px;
-  margin: -160px 0 0 -160px;
-  border-radius: 50%;
-  pointer-events: none;
-  z-index: 9995;
-  background: radial-gradient(circle, rgba(120,160,210,.07), transparent 62%);
-  mix-blend-mode: screen;
-  transition: opacity .3s;
-}
-
-.reveal {
-  opacity: 0;
-  transform: translateY(28px);
-  transition: opacity .8s ease, transform .8s ease;
-}
+/* ── REVEAL ── */
+.reveal { opacity: 0; transform: translateY(34px); transition: opacity .7s cubic-bezier(.2,.7,.2,1), transform .7s cubic-bezier(.2,.7,.2,1); }
 .reveal.in { opacity: 1; transform: translateY(0); }
+
+/* ── HAZARD STRIPE ── */
+.hazard {
+  height: 14px;
+  width: 100%;
+  background: repeating-linear-gradient(45deg, ${C.red} 0 22px, ${C.black} 22px 44px);
+  position: relative;
+  z-index: 1;
+}
 
 /* ── NAV ── */
 .nav {
-  position: fixed;
-  inset: 0 0 auto;
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.1rem clamp(1.25rem, 4vw, 3rem);
-  transition: background .3s, backdrop-filter .3s, border-color .3s;
+  position: fixed; inset: 0 0 auto; z-index: 1000;
+  display: flex; align-items: center; justify-content: space-between;
+  padding: .9rem clamp(1rem, 4vw, 2.6rem);
+  transition: background .3s, border-color .3s;
+  border-bottom: 2px solid transparent;
 }
 .nav.scrolled {
-  background: rgba(6,10,26,.72);
-  border-bottom: 1px solid ${C.border};
-  backdrop-filter: blur(14px) saturate(1.4);
-  -webkit-backdrop-filter: blur(14px) saturate(1.4);
+  background: rgba(11,11,11,.86);
+  border-bottom: 2px solid ${C.red};
+  backdrop-filter: blur(8px);
 }
-.logo-mark {
-  width: 38px; height: 38px;
-  display: grid;
-  place-items: center;
-  border-radius: 9px;
-  background: linear-gradient(135deg, rgba(136,197,255,.22), rgba(196,165,255,.05));
-  border: 1px solid ${C.borderSoft};
-  color: ${C.accent};
-  transition: transform .3s, box-shadow .3s;
+.nav-logo {
+  display: flex; align-items: center; gap: .6rem;
+  font-family: ${F.display}; font-size: 1.7rem; letter-spacing: .04em; color: ${C.cream};
 }
-.logo-mark:hover { transform: rotate(8deg) scale(1.08); box-shadow: 0 0 24px rgba(136,197,255,.3); }
-
-.nav-pills {
-  display: flex;
-  gap: .25rem;
-  padding: .35rem;
-  border-radius: 9999px;
-  background: rgba(13,18,38,.5);
-  border: 1px solid ${C.borderSoft};
-  backdrop-filter: blur(10px);
+.nav-logo .star { color: ${C.red}; animation: spinZ 8s linear infinite; display: inline-flex; }
+.nav-links { display: flex; gap: 1.6rem; }
+.nav-link {
+  font-family: ${F.cond}; font-weight: 600; font-size: .82rem; letter-spacing: .14em; text-transform: uppercase;
+  color: ${C.creamDim}; position: relative; padding: .2rem 0;
+  transition: color .2s;
 }
-.nav-pill {
-  font-family: ${F.sans};
-  font-size: .78rem;
-  font-weight: 500;
-  padding: .42rem 1rem;
-  border-radius: 9999px;
-  color: ${C.textSubtle};
-  transition: color .2s, background .2s;
+.nav-link::after {
+  content: ""; position: absolute; left: 0; bottom: -2px; height: 2px; width: 0; background: ${C.red};
+  transition: width .25s;
 }
-.nav-pill:hover { color: ${C.text}; background: rgba(136,197,255,.08); }
-
+.nav-link:hover { color: ${C.cream}; }
+.nav-link:hover::after { width: 100%; }
 .nav-cta {
-  font-family: ${F.sans};
-  font-size: .82rem;
-  font-weight: 500;
-  padding: .55rem 1.2rem;
-  border-radius: 9999px;
-  border: 1px solid ${C.borderSoft};
-  color: ${C.text};
-  background: linear-gradient(135deg, rgba(136,197,255,.14), rgba(136,197,255,.04));
-  transition: background .2s, border-color .2s, box-shadow .2s;
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
+  font-family: ${F.cond}; font-weight: 700; font-size: .82rem; letter-spacing: .12em; text-transform: uppercase;
+  padding: .5rem 1.1rem; background: ${C.red}; color: ${C.cream};
+  border: 2px solid ${C.red}; display: inline-flex; align-items: center; gap: .5rem;
+  transition: background .2s, color .2s, transform .12s;
 }
-.nav-cta:hover {
-  background: linear-gradient(135deg, rgba(136,197,255,.26), rgba(136,197,255,.08));
-  border-color: ${C.borderStrong};
-  box-shadow: 0 0 24px rgba(136,197,255,.18);
-}
+.nav-cta:hover { background: transparent; color: ${C.red}; transform: translateY(-1px); }
 
 /* ── SECTION ── */
-.section {
-  position: relative;
-  padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 4vw, 3rem);
-  z-index: 1;
+.section { position: relative; z-index: 1; padding: clamp(4rem, 8vw, 7rem) clamp(1.25rem, 5vw, 4rem); }
+.kicker {
+  display: inline-flex; align-items: center; gap: .6rem;
+  font-family: ${F.mono}; font-size: .72rem; letter-spacing: .26em; text-transform: uppercase;
+  color: ${C.red}; margin-bottom: 1rem;
 }
-.section-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 3rem;
-  font-family: ${F.sans};
-  font-size: .82rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: ${C.textSubtle};
+.kicker::before { content: "★"; }
+.heading {
+  margin: 0; font-family: ${F.display};
+  font-size: clamp(3rem, 11vw, 9rem); line-height: .86; letter-spacing: .005em;
+  text-transform: uppercase; color: ${C.cream};
 }
-.section-label::before, .section-label::after {
-  content: "";
-  flex: 1;
-  max-width: 120px;
-  height: 1px;
-  border-top: 1px dashed ${C.borderSoft};
+.heading .red { color: ${C.red}; }
+.outline {
+  color: transparent;
+  -webkit-text-stroke: 2px ${C.creamDim};
 }
 
 /* ── HERO ── */
-.hero-frame {
-  position: relative;
-  max-width: 760px;
-  margin: 0 auto;
-  padding: clamp(3rem, 6vw, 5rem) clamp(1.5rem, 4vw, 3rem);
-  border: 1px solid ${C.border};
-  border-radius: 6px;
-  background: linear-gradient(180deg, rgba(13,18,38,.4), rgba(6,10,26,.2));
-  backdrop-filter: blur(6px);
+.hero {
+  position: relative; min-height: 100vh; z-index: 1;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 7rem clamp(1.25rem, 5vw, 4rem) 4rem;
+  overflow: hidden;
 }
-.hero-frame::before,
-.hero-frame::after,
-.hero-frame > .corner-bl,
-.hero-frame > .corner-br {
-  content: "";
-  position: absolute;
-  width: 16px;
-  height: 16px;
-  background:
-    linear-gradient(to right, ${C.borderStrong}, ${C.borderStrong}) center / 100% 1px no-repeat,
-    linear-gradient(to bottom, ${C.borderStrong}, ${C.borderStrong}) center / 1px 100% no-repeat;
-  transform: rotate(45deg);
+.hero-star {
+  position: absolute; right: -4vw; top: 50%; transform: translateY(-50%);
+  width: min(60vw, 620px); aspect-ratio: 1; z-index: 0;
+  pointer-events: none; opacity: .9;
+  perspective: 900px;
 }
-.hero-frame::before { top: -8px; left: -8px; }
-.hero-frame::after  { top: -8px; right: -8px; }
-.hero-frame .corner-bl { bottom: -8px; left: -8px; }
-.hero-frame .corner-br { bottom: -8px; right: -8px; }
+.hero-star svg { width: 100%; height: 100%; animation: spin3d 16s linear infinite; transform-style: preserve-3d; }
+@keyframes spin3d {
+  0% { transform: rotateY(0deg) rotateZ(0deg); }
+  100% { transform: rotateY(360deg) rotateZ(360deg); }
+}
+@keyframes spinZ { 100% { transform: rotate(360deg); } }
 
-.welcome-label {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 1rem;
-  margin-bottom: 1rem;
-  font-family: ${F.sans};
-  font-size: .78rem;
-  letter-spacing: .22em;
-  text-transform: uppercase;
-  color: ${C.textSubtle};
+.hero-inner { position: relative; z-index: 2; max-width: 1100px; }
+.hero-tag {
+  font-family: ${F.mono}; font-size: .78rem; letter-spacing: .3em; text-transform: uppercase;
+  color: ${C.red}; margin-bottom: 1rem; display: flex; align-items: center; gap: .8rem;
 }
-.welcome-label::before, .welcome-label::after {
-  content: "";
-  flex: 1;
-  max-width: 90px;
-  height: 1px;
-  border-top: 1px dashed ${C.borderSoft};
-}
-
+.hero-tag .bar { width: 48px; height: 2px; background: ${C.red}; display: inline-block; }
 .hero-name {
-  margin: 0;
-  font-family: ${F.display};
-  font-weight: 700;
-  font-size: clamp(3.6rem, 11vw, 7.4rem);
-  letter-spacing: -.02em;
-  line-height: 1;
-  text-align: center;
-  background: linear-gradient(180deg, #ffffff 0%, ${C.accentBright} 35%, ${C.accent} 65%, ${C.accentDeep} 110%);
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  filter: drop-shadow(0 0 30px rgba(136,197,255,.25));
+  margin: 0; font-family: ${F.display};
+  font-size: clamp(5rem, 22vw, 19rem); line-height: .8; letter-spacing: .01em;
+  text-transform: uppercase; color: ${C.cream};
 }
 .hero-sub {
-  margin: 1.4rem 0 .4rem;
-  text-align: center;
-  font-family: ${F.sans};
-  font-size: 1rem;
-  font-weight: 500;
-  color: ${C.text};
-  letter-spacing: .04em;
+  margin: 1.4rem 0 .4rem; font-family: ${F.cond}; font-weight: 600;
+  font-size: clamp(1rem, 2.4vw, 1.5rem); letter-spacing: .08em; text-transform: uppercase; color: ${C.cream};
 }
-.hero-tagline {
-  text-align: center;
-  font-family: ${F.mono};
-  font-size: .78rem;
-  letter-spacing: .04em;
-  color: ${C.textMuted};
-  min-height: 1.2em;
+.hero-typeline {
+  font-family: ${F.mono}; font-size: .82rem; letter-spacing: .04em; color: ${C.creamDim}; min-height: 1.4em;
 }
-.cursor-blink {
-  display: inline-block;
-  width: .55em;
-  background: ${C.accent};
-  margin-left: 2px;
-  animation: blink 1.1s steps(1) infinite;
-}
-@keyframes blink {
-  0%, 50% { opacity: 1; }
-  50.01%, 100% { opacity: 0; }
-}
+.cursor-blink { display: inline-block; width: .6em; background: ${C.red}; margin-left: 2px; animation: blink 1.05s steps(1) infinite; }
+@keyframes blink { 0%,50%{opacity:1;} 50.01%,100%{opacity:0;} }
 
-.hero-socials {
-  display: flex;
-  justify-content: center;
-  gap: 1.1rem;
-  margin-top: 1.85rem;
-}
+.hero-socials { display: flex; gap: .7rem; margin-top: 2rem; }
 .social-link {
-  width: 40px; height: 40px;
-  display: grid;
-  place-items: center;
-  border-radius: 9px;
-  border: 1px solid ${C.borderSoft};
-  background: rgba(136,197,255,.04);
-  color: ${C.text};
-  transition: background .2s, border-color .2s, transform .2s, color .2s, box-shadow .2s;
+  width: 46px; height: 46px; display: grid; place-items: center;
+  border: 2px solid ${C.creamFaint}; color: ${C.cream}; background: transparent;
+  transition: background .18s, color .18s, border-color .18s, transform .18s;
 }
-.social-link:hover {
-  background: rgba(136,197,255,.16);
-  border-color: ${C.borderStrong};
-  color: ${C.accentBright};
-  transform: translateY(-3px);
-  box-shadow: 0 0 22px rgba(136,197,255,.25);
+.social-link:hover { background: ${C.red}; border-color: ${C.red}; color: ${C.cream}; transform: translate(-2px,-2px); box-shadow: 4px 4px 0 ${C.black}; }
+
+/* ── GLITCH ── */
+.glitch { position: relative; display: inline-block; }
+.glitch::before, .glitch::after {
+  content: attr(data-text); position: absolute; left: 0; top: 0; width: 100%; height: 100%; overflow: hidden;
+}
+.glitch::before { color: ${C.red}; z-index: -1; animation: glitchA 2.6s infinite steps(2); }
+.glitch::after { color: ${C.creamDim}; z-index: -2; animation: glitchB 3.2s infinite steps(2); }
+@keyframes glitchA {
+  0%,92%,100% { transform: translate(0,0); opacity:.9; }
+  93% { transform: translate(-5px,2px); }
+  96% { transform: translate(4px,-2px); }
+}
+@keyframes glitchB {
+  0%,90%,100% { transform: translate(0,0); opacity:.6; }
+  94% { transform: translate(5px,1px); }
+  97% { transform: translate(-4px,-1px); }
 }
 
-.roles-row {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
-  gap: 0;
-  max-width: 860px;
-  margin: 4rem auto 0;
+/* ── MARQUEE ── */
+.marquee {
+  position: relative; z-index: 1; overflow: hidden;
+  background: ${C.red}; border-top: 3px solid ${C.black}; border-bottom: 3px solid ${C.black};
+  padding: .7rem 0;
 }
-.role {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  position: relative;
+.marquee.alt { background: ${C.black}; border-top: 3px solid ${C.red}; border-bottom: 3px solid ${C.red}; }
+.marquee-track { display: flex; gap: 0; width: max-content; animation: marquee 24s linear infinite; }
+.marquee.alt .marquee-track { animation: marquee-rev 28s linear infinite; }
+@keyframes marquee { to { transform: translateX(-50%); } }
+@keyframes marquee-rev { from { transform: translateX(-50%); } to { transform: translateX(0); } }
+.marquee-word {
+  font-family: ${F.display}; font-size: 2rem; letter-spacing: .04em; text-transform: uppercase;
+  color: ${C.black}; padding: 0 1.4rem; display: inline-flex; align-items: center; gap: 1.4rem; white-space: nowrap;
 }
-.role::after {
-  content: "";
-  position: absolute;
-  top: 28px;
-  left: 60%;
-  width: 80%;
-  height: 1px;
-  border-top: 1px dashed ${C.borderSoft};
-  z-index: 0;
-}
-.role:last-child::after { display: none; }
-.role-icon {
-  position: relative;
-  z-index: 1;
-  width: 56px; height: 56px;
-  display: grid;
-  place-items: center;
-  border-radius: 13px;
-  border: 1px solid ${C.borderSoft};
-  background: linear-gradient(135deg, rgba(136,197,255,.10), rgba(13,18,38,.9));
-  color: ${C.accent};
-  margin-bottom: .9rem;
-  transition: border-color .25s, box-shadow .25s, transform .25s;
-}
-.role:hover .role-icon {
-  border-color: ${C.borderStrong};
-  box-shadow: 0 0 26px rgba(136,197,255,.25);
-  transform: translateY(-3px);
-}
-.role-label {
-  font-family: ${F.sans};
-  font-size: .72rem;
-  letter-spacing: .04em;
-  color: ${C.textSubtle};
-  text-align: center;
-  max-width: 110px;
-  line-height: 1.3;
-}
+.marquee.alt .marquee-word { color: ${C.cream}; }
+.marquee-word::after { content: "★"; color: ${C.cream}; font-size: 1.1rem; }
+.marquee.alt .marquee-word::after { color: ${C.red}; }
 
-.about-text {
-  max-width: 640px;
-  margin: 4rem auto 0;
-  text-align: center;
-  font-family: ${F.sans};
-  font-size: .95rem;
-  line-height: 1.85;
-  color: ${C.textSubtle};
+/* ── ABOUT ── */
+.about-wrap { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(2rem,5vw,4rem); align-items: center; max-width: 1100px; margin: 0 auto; }
+.about-text { font-family: ${F.cond}; font-weight: 300; font-size: clamp(1.05rem, 1.8vw, 1.35rem); line-height: 1.7; color: ${C.creamDim}; }
+.about-text b { color: ${C.cream}; font-weight: 700; }
+.roles-list { display: flex; flex-direction: column; gap: .2rem; }
+.role-row {
+  display: flex; align-items: center; gap: 1rem; padding: .9rem .4rem;
+  border-bottom: 2px solid ${C.ink2}; transition: padding-left .2s, background .2s, color .2s;
 }
+.role-row:hover { padding-left: 1.2rem; background: ${C.red}; color: ${C.cream}; border-color: ${C.red}; }
+.role-row:hover .role-num, .role-row:hover .role-ic { color: ${C.cream}; }
+.role-num { font-family: ${F.mono}; font-size: .8rem; color: ${C.red}; width: 32px; }
+.role-ic { color: ${C.red}; display: inline-flex; }
+.role-name { font-family: ${F.display}; font-size: clamp(1.2rem, 3vw, 1.9rem); text-transform: uppercase; letter-spacing: .02em; }
 
 /* ── STATS ── */
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1.2rem;
-  max-width: 980px;
-  margin: 0 auto;
-}
-.stat-card {
-  position: relative;
-  padding: 1.6rem 1.2rem;
-  border-radius: 14px;
-  border: 1px solid ${C.borderSoft};
-  background: linear-gradient(180deg, rgba(16,22,44,.7), rgba(10,14,30,.55));
-  text-align: center;
-  overflow: hidden;
-}
-.stat-card::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 1px;
-  background: linear-gradient(90deg, transparent, ${C.borderStrong}, transparent);
-}
-.stat-number {
-  font-family: ${F.display};
-  font-weight: 700;
-  font-size: clamp(1.8rem, 4vw, 2.8rem);
-  line-height: 1;
-  background: linear-gradient(180deg, ${C.accentBright}, ${C.accent});
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-}
-.stat-label {
-  margin-top: .65rem;
-  font-family: ${F.mono};
-  font-size: .68rem;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: ${C.textMuted};
-}
+.stats { display: grid; grid-template-columns: repeat(4,1fr); gap: 0; max-width: 1100px; margin: 3rem auto 0; border: 2px solid ${C.ink2}; }
+.stat { padding: 1.8rem 1rem; text-align: center; border-right: 2px solid ${C.ink2}; }
+.stat:last-child { border-right: none; }
+.stat-num { font-family: ${F.display}; font-size: clamp(2rem,5vw,3.4rem); color: ${C.red}; line-height: 1; }
+.stat-lbl { font-family: ${F.mono}; font-size: .64rem; letter-spacing: .2em; text-transform: uppercase; color: ${C.creamDim}; margin-top: .6rem; }
 
-/* ── TECH MARQUEE ── */
-.marquee-wrap {
-  position: relative;
-  overflow: hidden;
-  padding: 2rem 0;
-  border-top: 1px solid ${C.border};
-  border-bottom: 1px solid ${C.border};
-  -webkit-mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
-  mask-image: linear-gradient(90deg, transparent, #000 12%, #000 88%, transparent);
+/* ── STACK ── */
+.tech-marquee { position: relative; overflow: hidden; -webkit-mask-image: linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); mask-image: linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent); }
+.tech-track { display: flex; gap: 1rem; width: max-content; animation: marquee 34s linear infinite; padding: 1rem 0; }
+.tech-track.rev { animation: marquee-rev 40s linear infinite; }
+.tech-tile {
+  flex-shrink: 0; width: 84px; height: 84px; display: grid; place-items: center;
+  border: 2px solid ${C.ink2}; background: ${C.ink}; transition: border-color .2s, background .2s, transform .15s;
 }
-.marquee-track {
-  display: flex;
-  gap: 2.2rem;
-  width: max-content;
-  animation: marquee 38s linear infinite;
-}
-.marquee-track.reverse {
-  animation: marquee-rev 42s linear infinite;
-  margin-top: 1rem;
-}
-@keyframes marquee {
-  0% { transform: translateX(0); }
-  100% { transform: translateX(-50%); }
-}
-@keyframes marquee-rev {
-  0% { transform: translateX(-50%); }
-  100% { transform: translateX(0); }
-}
-.marquee-tile {
-  flex-shrink: 0;
-  width: 72px; height: 72px;
-  display: grid;
-  place-items: center;
-  border-radius: 14px;
-  border: 1px solid ${C.border};
-  background: linear-gradient(135deg, rgba(136,197,255,.05), rgba(13,18,38,.5));
-  transition: border-color .25s, transform .2s, background .25s;
-}
-.marquee-tile:hover {
-  border-color: ${C.borderStrong};
-  background: linear-gradient(135deg, rgba(136,197,255,.14), rgba(13,18,38,.7));
-  transform: translateY(-3px);
-}
-.marquee-tile img {
-  width: 52%; height: 52%;
-  opacity: .85;
-}
+.tech-tile:hover { border-color: ${C.red}; background: ${C.black}; transform: translateY(-4px); }
+.tech-tile img { width: 50%; height: 50%; opacity: .85; }
 
-/* ── PROJECTS / TILT CARDS ── */
-.projects-grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  max-width: 1080px;
-  margin: 0 auto;
-  perspective: 1200px;
-}
+/* ── PROJECTS ── */
+.projects-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; max-width: 1180px; margin: 0 auto; perspective: 1200px; }
 .tilt-card {
-  position: relative;
-  aspect-ratio: 0.82;
-  padding: 1.6rem 1.5rem;
-  border-radius: 18px;
-  border: 1px solid ${C.borderSoft};
-  background: linear-gradient(180deg, rgba(20,28,55,.7), rgba(10,14,30,.6));
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  transition: transform .25s ease-out, border-color .25s, box-shadow .25s;
-  transform-style: preserve-3d;
-  cursor: pointer;
-  overflow: hidden;
-  --spot-x: 50%;
-  --spot-y: 50%;
-  --accent: ${C.accent};
+  position: relative; display: flex; flex-direction: column;
+  border: 2px solid ${C.ink2}; background: ${C.ink};
+  transition: transform .2s ease-out, border-color .2s, box-shadow .2s;
+  transform-style: preserve-3d; cursor: pointer; --accent: ${C.red};
 }
-.tilt-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: 18px;
-  background: radial-gradient(circle 250px at var(--spot-x) var(--spot-y), color-mix(in srgb, var(--accent) 25%, transparent), transparent 70%);
-  opacity: 0;
-  transition: opacity .3s;
-  pointer-events: none;
-}
-.tilt-card:hover {
-  border-color: var(--accent);
-  box-shadow: 0 24px 60px rgba(0,0,0,.55), 0 0 50px color-mix(in srgb, var(--accent) 22%, transparent);
-}
-.tilt-card:hover::before { opacity: 1; }
-.tilt-preview {
-  position: relative;
-  flex: 1;
-  border-radius: 12px;
-  margin-bottom: 1.2rem;
-  background: rgba(8,12,28,.65);
-  border: 1px solid ${C.border};
-  overflow: hidden;
-  transform: translateZ(20px);
-}
-.preview-svg {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  display: block;
-}
+.tilt-card:hover { border-color: var(--accent); box-shadow: 10px 10px 0 ${C.black}; }
+.tilt-preview { position: relative; aspect-ratio: 1.4; overflow: hidden; border-bottom: 2px solid ${C.ink2}; transform: translateZ(30px); }
+.tilt-card:hover .tilt-preview { border-color: var(--accent); }
+.preview-svg { position: absolute; inset: 0; width: 100%; height: 100%; display: block; }
+.tilt-body { padding: 1.3rem; }
 .tilt-tag {
-  display: inline-block;
-  font-family: ${F.mono};
-  font-size: .65rem;
-  letter-spacing: .15em;
-  text-transform: uppercase;
-  color: var(--accent);
-  margin-bottom: .55rem;
+  display: inline-block; font-family: ${F.mono}; font-size: .62rem; letter-spacing: .16em; text-transform: uppercase;
+  color: ${C.black}; background: var(--accent); padding: .2rem .5rem; margin-bottom: .7rem;
 }
-.tilt-title {
-  margin: 0;
-  font-family: ${F.display};
-  font-weight: 600;
-  font-size: 1.25rem;
-  color: ${C.text};
-  letter-spacing: -.01em;
-  transform: translateZ(30px);
-}
-.tilt-desc {
-  margin: .5rem 0 0;
-  font-family: ${F.sans};
-  font-size: .82rem;
-  line-height: 1.55;
-  color: ${C.textSubtle};
-}
-.tilt-footer {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-top: 1rem;
-}
-.tilt-link {
-  width: 30px; height: 30px;
-  display: grid;
-  place-items: center;
-  border-radius: 7px;
-  background: rgba(136,197,255,.10);
-  border: 1px solid ${C.borderSoft};
-  color: ${C.text};
-  transition: background .2s, color .2s, transform .2s;
-}
-.tilt-link:hover { background: rgba(136,197,255,.24); color: ${C.accentBright}; transform: rotate(-12deg); }
+.tilt-title { margin: 0; font-family: ${F.display}; font-size: 1.5rem; text-transform: uppercase; letter-spacing: .02em; color: ${C.cream}; transform: translateZ(20px); }
+.tilt-desc { margin: .5rem 0 0; font-family: ${F.cond}; font-weight: 300; font-size: .9rem; line-height: 1.55; color: ${C.creamDim}; }
+.tilt-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 1.1rem; }
+.tilt-src { font-family: ${F.mono}; font-size: .62rem; letter-spacing: .14em; color: ${C.creamFaint}; }
+.tilt-link { width: 34px; height: 34px; display: grid; place-items: center; border: 2px solid ${C.creamFaint}; color: ${C.cream}; transition: background .2s, color .2s; }
+.tilt-link:hover { background: var(--accent); border-color: var(--accent); color: ${C.black}; }
 
 /* ── SPOTIFY ── */
-.spotify-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 2rem;
-  max-width: 980px;
-  margin: 0 auto;
-  align-items: stretch;
-}
-.spotify-now {
-  position: relative;
-  padding: 2rem;
-  border-radius: 18px;
-  border: 1px solid ${C.borderSoft};
-  background: linear-gradient(160deg, rgba(29,185,84,.06), rgba(16,22,44,.7) 60%);
-  overflow: hidden;
-}
-.spotify-now::after {
-  content: "";
-  position: absolute;
-  top: 0; left: 0; right: 0; height: 2px;
-  background: linear-gradient(90deg, ${C.green}, ${C.accent}, ${C.violet});
-  background-size: 200% 100%;
-  animation: nowGradient 4s linear infinite;
-}
-@keyframes nowGradient {
-  0% { background-position: 0 0; }
-  100% { background-position: 200% 0; }
-}
-.spotify-pill {
-  display: inline-flex;
-  align-items: center;
-  gap: .5rem;
-  font-family: ${F.mono};
-  font-size: .68rem;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: ${C.green};
-  margin-bottom: 1.5rem;
-}
-.spotify-pulse {
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: ${C.green};
-  box-shadow: 0 0 12px ${C.green};
-  animation: nowPulse 1.4s ease-in-out infinite;
-}
-@keyframes nowPulse {
-  0%, 100% { transform: scale(1); opacity: 1; }
-  50% { transform: scale(.6); opacity: .55; }
-}
+.spotify-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; max-width: 1040px; margin: 0 auto; }
+.sp-now { position: relative; padding: 2rem; border: 2px solid ${C.ink2}; background: ${C.ink}; overflow: hidden; }
+.sp-now::after { content: ""; position: absolute; top: 0; left: 0; right: 0; height: 4px; background: ${C.red}; }
+.sp-pill { display: inline-flex; align-items: center; gap: .5rem; font-family: ${F.mono}; font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; color: ${C.red}; margin-bottom: 1.5rem; }
+.sp-pulse { width: 9px; height: 9px; background: ${C.red}; animation: pulse 1.3s ease-in-out infinite; }
+@keyframes pulse { 0%,100%{opacity:1; transform:scale(1);} 50%{opacity:.45; transform:scale(.6);} }
 .vinyl {
-  position: relative;
-  width: clamp(180px, 28vw, 240px);
-  aspect-ratio: 1;
-  margin: 0 auto 1.5rem;
-  border-radius: 50%;
-  background: radial-gradient(circle at center, #0a0a0a 0%, #0a0a0a 28%, #1a1a1a 29%, #0a0a0a 30%, #1a1a1a 31%, #0a0a0a 32%, #1a1a1a 33%, #0a0a0a 34%, #1a1a1a 35%, #0a0a0a 36%, #1a1a1a 37%, #0a0a0a 38%, #1a1a1a 39%, #0a0a0a 40%, #1a1a1a 41%, #0a0a0a 42%, #1a1a1a 43%, #0a0a0a 44%, #1a1a1a 45%);
-  box-shadow: 0 16px 40px rgba(0,0,0,.55), inset 0 0 0 1px rgba(255,255,255,.04);
-  animation: spin 14s linear infinite;
+  position: relative; width: clamp(170px,30vw,230px); aspect-ratio: 1; margin: 0 auto 1.4rem; border-radius: 50%;
+  background: radial-gradient(circle at center, #0a0a0a 0 30%, #1a1a1a 31%, #0a0a0a 33%, #1a1a1a 35%, #0a0a0a 37%, #1a1a1a 39%, #0a0a0a 41%, #1a1a1a 43%, #0a0a0a 45%);
+  box-shadow: 0 14px 36px rgba(0,0,0,.6); animation: spinZ 11s linear infinite;
 }
 .vinyl.paused { animation-play-state: paused; }
-.vinyl-label {
-  position: absolute;
-  inset: 32%;
-  border-radius: 50%;
-  background-size: cover;
-  background-position: center;
-  background-color: ${C.bgAlt};
-  border: 2px solid #000;
-  box-shadow: inset 0 0 0 1px rgba(255,255,255,.05);
-}
-.vinyl-hole {
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%, -50%);
-  width: 8px; height: 8px;
-  border-radius: 50%;
-  background: ${C.bg};
-  z-index: 2;
-}
-@keyframes spin {
-  from { transform: rotate(0deg); }
-  to { transform: rotate(360deg); }
-}
-.spotify-track-name {
-  margin: 0;
-  font-family: ${F.display};
-  font-weight: 600;
-  font-size: 1.05rem;
-  color: ${C.text};
-  text-align: center;
-  letter-spacing: -.01em;
-}
-.spotify-artist {
-  margin-top: .25rem;
-  font-family: ${F.sans};
-  font-size: .82rem;
-  color: ${C.textSubtle};
-  text-align: center;
-}
-.equalizer {
-  display: flex;
-  align-items: end;
-  justify-content: center;
-  gap: 3px;
-  height: 28px;
-  margin-top: 1.2rem;
-}
-.eq-bar {
-  width: 4px;
-  background: linear-gradient(180deg, ${C.accent}, ${C.green});
-  border-radius: 2px;
-  animation: eq 1s ease-in-out infinite;
-}
-.eq-bar:nth-child(1) { animation-delay: -1.1s; }
-.eq-bar:nth-child(2) { animation-delay: -.6s; }
-.eq-bar:nth-child(3) { animation-delay: -.9s; }
-.eq-bar:nth-child(4) { animation-delay: -.4s; }
-.eq-bar:nth-child(5) { animation-delay: -1.2s; }
-.eq-bar:nth-child(6) { animation-delay: -.7s; }
-.eq-bar:nth-child(7) { animation-delay: -.5s; }
-@keyframes eq {
-  0%, 100% { height: 22%; }
-  50% { height: 100%; }
-}
-.eq-paused .eq-bar { animation-play-state: paused; height: 18%; }
-
-.spotify-recent {
-  padding: 2rem;
-  border-radius: 18px;
-  border: 1px solid ${C.borderSoft};
-  background: linear-gradient(160deg, rgba(196,165,255,.04), rgba(16,22,44,.7) 60%);
-}
-.recent-label {
-  font-family: ${F.mono};
-  font-size: .68rem;
-  letter-spacing: .18em;
-  text-transform: uppercase;
-  color: ${C.textSubtle};
-  margin-bottom: 1.2rem;
-}
-.recent-row {
-  display: flex;
-  align-items: center;
-  gap: .85rem;
-  padding: .65rem 0;
-  border-bottom: 1px solid rgba(136,197,255,.06);
-  transition: background .15s;
-}
-.recent-row:last-child { border-bottom: none; }
-.recent-row:hover { background: rgba(136,197,255,.04); }
-.recent-num {
-  width: 22px;
-  font-family: ${F.mono};
-  font-size: .7rem;
-  color: ${C.textMuted};
-  text-align: right;
-  flex-shrink: 0;
-}
-.recent-art {
-  width: 38px; height: 38px;
-  border-radius: 6px;
-  flex-shrink: 0;
-  background: linear-gradient(135deg, ${C.bgAlt}, ${C.surfaceSolid});
-  background-size: cover;
-  background-position: center;
-}
-.recent-track {
-  flex: 1;
-  min-width: 0;
-}
-.recent-name {
-  font-family: ${F.sans};
-  font-weight: 600;
-  font-size: .85rem;
-  color: ${C.text};
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.recent-artist {
-  font-family: ${F.mono};
-  font-size: .65rem;
-  color: ${C.textMuted};
-  margin-top: .15rem;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-.recent-time {
-  font-family: ${F.mono};
-  font-size: .62rem;
-  color: ${C.textMuted};
-  flex-shrink: 0;
-}
+.vinyl-label { position: absolute; inset: 33%; border-radius: 50%; background: ${C.red}; background-size: cover; background-position: center; border: 3px solid #000; }
+.vinyl-hole { position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%); width: 8px; height: 8px; border-radius: 50%; background: ${C.black}; z-index: 2; }
+.sp-track { margin: 0; font-family: ${F.display}; font-size: 1.2rem; text-transform: uppercase; text-align: center; color: ${C.cream}; }
+.sp-artist { margin-top: .25rem; font-family: ${F.mono}; font-size: .76rem; color: ${C.creamDim}; text-align: center; }
+.eq { display: flex; align-items: end; justify-content: center; gap: 3px; height: 26px; margin-top: 1.1rem; }
+.eq span { width: 4px; background: ${C.red}; animation: eq 1s ease-in-out infinite; }
+.eq span:nth-child(1){animation-delay:-1.1s} .eq span:nth-child(2){animation-delay:-.6s} .eq span:nth-child(3){animation-delay:-.9s} .eq span:nth-child(4){animation-delay:-.4s} .eq span:nth-child(5){animation-delay:-1.2s} .eq span:nth-child(6){animation-delay:-.7s} .eq span:nth-child(7){animation-delay:-.5s}
+@keyframes eq { 0%,100%{height:20%} 50%{height:100%} }
+.eq.paused span { animation-play-state: paused; height: 16%; }
+.sp-recent { padding: 2rem; border: 2px solid ${C.ink2}; background: ${C.ink}; }
+.sp-rlabel { font-family: ${F.mono}; font-size: .66rem; letter-spacing: .18em; text-transform: uppercase; color: ${C.creamDim}; margin-bottom: 1.1rem; }
+.rrow { display: flex; align-items: center; gap: .8rem; padding: .6rem 0; border-bottom: 1px solid ${C.ink2}; }
+.rrow:last-child { border-bottom: none; }
+.rnum { width: 22px; font-family: ${F.mono}; font-size: .7rem; color: ${C.red}; text-align: right; }
+.rart { width: 38px; height: 38px; background: ${C.ink2}; background-size: cover; background-position: center; flex-shrink: 0; }
+.rtrack { flex: 1; min-width: 0; }
+.rname { font-family: ${F.cond}; font-weight: 600; font-size: .86rem; color: ${C.cream}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.rartist { font-family: ${F.mono}; font-size: .64rem; color: ${C.creamFaint}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: .15rem; }
+.rtime { font-family: ${F.mono}; font-size: .62rem; color: ${C.creamFaint}; flex-shrink: 0; }
+.sp-open { display: inline-flex; align-items: center; gap: .5rem; margin-top: 1.2rem; padding: .55rem 1.1rem; background: ${C.red}; color: ${C.cream}; font-family: ${F.cond}; font-weight: 700; font-size: .76rem; letter-spacing: .1em; text-transform: uppercase; }
 
 /* ── CONTACT ── */
-.contact-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 4rem;
-  max-width: 980px;
-  margin: 0 auto;
-  align-items: center;
+.contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(2rem,5vw,4rem); max-width: 1040px; margin: 0 auto; align-items: center; }
+.contact-head { margin: 0; font-family: ${F.display}; font-size: clamp(2.4rem,6vw,4.6rem); line-height: .9; text-transform: uppercase; color: ${C.cream}; }
+.contact-head .red { color: ${C.red}; }
+.contact-form { display: flex; flex-direction: column; gap: 1.1rem; }
+.field { border: 2px solid ${C.ink2}; padding: .7rem .9rem; background: ${C.ink}; transition: border-color .2s; }
+.field:focus-within { border-color: ${C.red}; }
+.field label { display: block; font-family: ${F.mono}; font-size: .66rem; letter-spacing: .14em; text-transform: uppercase; color: ${C.creamFaint}; margin-bottom: .3rem; }
+.field input, .field textarea { width: 100%; background: transparent; border: none; outline: none; font-family: ${F.cond}; font-size: .95rem; color: ${C.cream}; }
+.field textarea { resize: vertical; min-height: 56px; }
+.mag-btn {
+  align-self: flex-start; padding: .9rem 1.8rem; background: ${C.red}; color: ${C.cream};
+  border: 2px solid ${C.red}; font-family: ${F.cond}; font-weight: 700; font-size: .86rem; letter-spacing: .1em; text-transform: uppercase;
+  transition: background .18s, color .18s, box-shadow .18s; position: relative; overflow: hidden;
 }
-.contact-heading {
-  margin: 0;
-  font-family: ${F.display};
-  font-weight: 700;
-  font-size: clamp(2.1rem, 4.4vw, 3rem);
-  line-height: 1.15;
-  letter-spacing: -.02em;
-  color: ${C.text};
-}
-.contact-form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-.field {
-  position: relative;
-  border-bottom: 1px solid ${C.borderSoft};
-  transition: border-color .2s, box-shadow .2s;
-}
-.field:focus-within { border-color: ${C.accent}; box-shadow: 0 1px 0 ${C.accent}, 0 12px 30px -18px ${C.accent}; }
-.field label {
-  display: block;
-  font-family: ${F.sans};
-  font-size: .78rem;
-  color: ${C.textMuted};
-  margin-bottom: .35rem;
-  transition: color .2s;
-}
-.field:focus-within label { color: ${C.accent}; }
-.field input, .field textarea {
-  width: 100%;
-  background: transparent;
-  border: none;
-  outline: none;
-  padding: .5rem 0 .85rem;
-  font-family: ${F.sans};
-  font-size: .95rem;
-  color: ${C.text};
-}
-.field textarea { resize: vertical; min-height: 60px; }
-.magnetic-button {
-  position: relative;
-  align-self: flex-start;
-  margin-top: 1rem;
-  padding: .9rem 1.8rem;
-  border-radius: 9999px;
-  border: 1px solid ${C.borderStrong};
-  background: linear-gradient(135deg, rgba(136,197,255,.2), rgba(196,165,255,.08));
-  color: ${C.accentBright};
-  font-family: ${F.sans};
-  font-size: .85rem;
-  font-weight: 600;
-  letter-spacing: .02em;
-  transition: background .2s, box-shadow .25s, transform .15s ease-out;
-  overflow: hidden;
-}
-.magnetic-button:hover {
-  background: linear-gradient(135deg, rgba(136,197,255,.34), rgba(196,165,255,.16));
-  box-shadow: 0 0 30px rgba(136,197,255,.3);
-}
-.magnetic-button::after {
-  content: "";
-  position: absolute;
-  top: 0; left: -100%;
-  width: 100%; height: 100%;
-  background: linear-gradient(90deg, transparent, rgba(255,255,255,.18), transparent);
-  transition: left .6s;
-}
-.magnetic-button:hover::after { left: 100%; }
-
-/* ── DOCK ── */
-.dock {
-  position: fixed;
-  bottom: 1.5rem;
-  left: 50%;
-  transform: translateX(-50%);
-  z-index: 950;
-  display: flex;
-  gap: .4rem;
-  padding: .5rem;
-  border-radius: 9999px;
-  background: rgba(13,18,38,.65);
-  border: 1px solid ${C.borderSoft};
-  backdrop-filter: blur(16px) saturate(1.5);
-  -webkit-backdrop-filter: blur(16px) saturate(1.5);
-  box-shadow: 0 12px 36px rgba(0,0,0,.55);
-}
-.dock-item {
-  position: relative;
-  width: 44px; height: 44px;
-  display: grid;
-  place-items: center;
-  border-radius: 50%;
-  color: ${C.text};
-  background: rgba(136,197,255,.06);
-  transition: transform .2s ease-out, background .2s, color .2s;
-}
-.dock-item:hover {
-  background: rgba(136,197,255,.18);
-  color: ${C.accentBright};
-  transform: translateY(-8px) scale(1.18);
-}
-.dock-tooltip {
-  position: absolute;
-  bottom: calc(100% + 8px);
-  left: 50%;
-  transform: translateX(-50%);
-  font-family: ${F.mono};
-  font-size: .62rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: ${C.text};
-  background: rgba(13,18,38,.95);
-  border: 1px solid ${C.borderSoft};
-  padding: .35rem .65rem;
-  border-radius: 6px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s;
-}
-.dock-item:hover .dock-tooltip { opacity: 1; }
-
-/* ── SCROLL RAIL ── */
-.scroll-rail {
-  position: fixed;
-  right: 22px;
-  top: 0;
-  height: 100vh;
-  width: 16px;
-  z-index: 940;
-  pointer-events: none;
-  opacity: 0;
-  transition: opacity .45s ease;
-}
-.scroll-rail.visible { opacity: 1; pointer-events: auto; }
-.scroll-rail-track {
-  position: absolute;
-  left: 50%;
-  top: 14vh;
-  height: 72vh;
-  width: 2px;
-  transform: translateX(-50%);
-  background: rgba(136,197,255,.12);
-  border-radius: 2px;
-}
-.scroll-rail-fill {
-  position: absolute;
-  left: 0;
-  top: 0;
-  width: 100%;
-  height: 100%;
-  transform-origin: top;
-  transform: scaleY(0);
-  background: linear-gradient(180deg, ${C.accent}, ${C.violet});
-  border-radius: 2px;
-}
-.scroll-rail-dot {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 11px;
-  height: 11px;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background: ${C.accentBright};
-  box-shadow: 0 0 10px ${C.accent}, 0 0 22px rgba(136,197,255,.55);
-}
-.scroll-rail-dot-label {
-  position: absolute;
-  right: calc(100% + 12px);
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: ${F.mono};
-  font-size: .6rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: ${C.text};
-  background: rgba(13,18,38,.95);
-  border: 1px solid ${C.borderSoft};
-  padding: .3rem .6rem;
-  border-radius: 6px;
-  white-space: nowrap;
-}
-.scroll-rail-tick {
-  position: absolute;
-  left: 50%;
-  top: 0;
-  width: 8px;
-  height: 8px;
-  padding: 0;
-  border-radius: 50%;
-  transform: translate(-50%, -50%);
-  background: rgba(136,197,255,.22);
-  border: 1px solid rgba(136,197,255,.4);
-  cursor: pointer;
-  transition: background .2s, transform .2s, box-shadow .2s, border-color .2s;
-}
-.scroll-rail-tick:hover { border-color: ${C.accent}; transform: translate(-50%, -50%) scale(1.3); }
-.scroll-rail-tick.active {
-  background: ${C.accent};
-  border-color: ${C.accent};
-  box-shadow: 0 0 10px ${C.accent};
-  transform: translate(-50%, -50%) scale(1.3);
-}
-.scroll-rail-tick-label {
-  position: absolute;
-  right: calc(100% + 12px);
-  top: 50%;
-  transform: translateY(-50%);
-  font-family: ${F.mono};
-  font-size: .6rem;
-  letter-spacing: .14em;
-  text-transform: uppercase;
-  color: ${C.text};
-  background: rgba(13,18,38,.95);
-  border: 1px solid ${C.borderSoft};
-  padding: .3rem .6rem;
-  border-radius: 6px;
-  white-space: nowrap;
-  opacity: 0;
-  pointer-events: none;
-  transition: opacity .2s;
-}
-.scroll-rail-tick:hover .scroll-rail-tick-label { opacity: 1; }
-@media (max-width: 900px) {
-  .scroll-rail { right: 10px; width: 12px; }
-  .scroll-rail-track { top: 16vh; height: 62vh; }
-  .scroll-rail-tick-label { display: none; }
-}
+.mag-btn:hover { background: ${C.black}; color: ${C.red}; box-shadow: 6px 6px 0 ${C.red}; }
 
 /* ── FOOTER ── */
-.footer {
-  position: relative;
-  padding: 4rem 1.25rem 7rem;
-  text-align: center;
-}
-.footer::before {
-  content: "";
-  position: absolute;
-  top: 0; left: 50%;
-  transform: translateX(-50%);
-  width: min(720px, 80%);
-  height: 1px;
-  border-top: 1px dashed ${C.borderSoft};
-}
-.footer-bye {
-  font-family: ${F.display};
-  font-weight: 700;
-  font-size: 1.6rem;
-  background: linear-gradient(135deg, ${C.accentBright}, ${C.violet});
-  -webkit-background-clip: text;
-  background-clip: text;
-  -webkit-text-fill-color: transparent;
-  margin-bottom: .35rem;
-}
-.footer-sub {
-  font-family: ${F.mono};
-  font-size: .72rem;
-  letter-spacing: .15em;
-  color: ${C.textMuted};
-  text-transform: uppercase;
-}
+.footer { position: relative; z-index: 1; padding: 3.5rem 1.5rem 7rem; text-align: center; border-top: 3px solid ${C.red}; }
+.footer-big { font-family: ${F.display}; font-size: clamp(3rem,12vw,8rem); line-height: .9; text-transform: uppercase; color: ${C.cream}; }
+.footer-big .red { color: ${C.red}; }
+.footer-sub { font-family: ${F.mono}; font-size: .7rem; letter-spacing: .2em; text-transform: uppercase; color: ${C.creamFaint}; margin-top: .6rem; }
+
+/* ── DOCK ── */
+.dock { position: fixed; bottom: 1.3rem; left: 50%; transform: translateX(-50%); z-index: 950; display: flex; gap: .35rem; padding: .45rem; background: rgba(11,11,11,.85); border: 2px solid ${C.red}; backdrop-filter: blur(8px); }
+.dock-item { position: relative; width: 44px; height: 44px; display: grid; place-items: center; color: ${C.cream}; transition: background .18s, color .18s, transform .18s; }
+.dock-item:hover { background: ${C.red}; color: ${C.cream}; transform: translateY(-6px); }
+.dock-tip { position: absolute; bottom: calc(100% + 8px); left: 50%; transform: translateX(-50%); font-family: ${F.mono}; font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; color: ${C.cream}; background: ${C.black}; border: 1px solid ${C.red}; padding: .3rem .55rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .18s; }
+.dock-item:hover .dock-tip { opacity: 1; }
+
+/* ── SCROLL RAIL ── */
+.scroll-rail { position: fixed; right: 20px; top: 0; height: 100vh; width: 16px; z-index: 940; pointer-events: none; opacity: 0; transition: opacity .4s ease; }
+.scroll-rail.visible { opacity: 1; pointer-events: auto; }
+.scroll-rail-track { position: absolute; left: 50%; top: 14vh; height: 72vh; width: 2px; transform: translateX(-50%); background: ${C.ink2}; }
+.scroll-rail-fill { position: absolute; left: 0; top: 0; width: 100%; height: 100%; transform-origin: top; transform: scaleY(0); background: ${C.red}; }
+.scroll-rail-dot { position: absolute; left: 50%; top: 0; width: 12px; height: 12px; transform: translate(-50%,-50%) rotate(45deg); background: ${C.red}; box-shadow: 0 0 10px ${C.red}; }
+.scroll-rail-dot-label { position: absolute; right: calc(100% + 12px); top: 50%; transform: translateY(-50%) rotate(-45deg); font-family: ${F.mono}; font-size: .58rem; letter-spacing: .14em; text-transform: uppercase; color: ${C.cream}; background: ${C.black}; border: 1px solid ${C.red}; padding: .28rem .55rem; white-space: nowrap; }
+.scroll-rail-tick { position: absolute; left: 50%; top: 0; width: 8px; height: 8px; padding: 0; transform: translate(-50%,-50%) rotate(45deg); background: ${C.ink}; border: 1px solid ${C.creamFaint}; cursor: pointer; transition: background .2s, transform .2s; }
+.scroll-rail-tick:hover { background: ${C.red}; border-color: ${C.red}; transform: translate(-50%,-50%) rotate(45deg) scale(1.3); }
+.scroll-rail-tick.active { background: ${C.red}; border-color: ${C.red}; }
+.scroll-rail-tick-label { position: absolute; right: calc(100% + 10px); top: 50%; transform: translateY(-50%) rotate(-45deg); font-family: ${F.mono}; font-size: .56rem; letter-spacing: .12em; text-transform: uppercase; color: ${C.cream}; background: ${C.black}; border: 1px solid ${C.red}; padding: .25rem .5rem; white-space: nowrap; opacity: 0; pointer-events: none; transition: opacity .2s; }
+.scroll-rail-tick:hover .scroll-rail-tick-label { opacity: 1; }
 
 /* ── RESPONSIVE ── */
 @media (max-width: 980px) {
-  .stats-grid { grid-template-columns: repeat(2, 1fr); }
+  .about-wrap { grid-template-columns: 1fr; }
   .spotify-grid { grid-template-columns: 1fr; }
+  .stats { grid-template-columns: repeat(2,1fr); }
+  .stat:nth-child(2) { border-right: none; }
+  .stat:nth-child(1), .stat:nth-child(2) { border-bottom: 2px solid ${C.ink2}; }
+}
+@media (max-width: 860px) {
+  .nav-links { display: none; }
+  .projects-grid { grid-template-columns: 1fr; }
+  .contact-grid { grid-template-columns: 1fr; }
+  .hero-star { opacity: .35; right: -20vw; }
 }
 @media (max-width: 900px) {
-  .contact-grid { grid-template-columns: 1fr; gap: 2.5rem; }
-  .projects-grid { grid-template-columns: 1fr; }
-  .spotlight-cursor { display: none; }
-  .nav-pills { display: none; }
-}
-@media (max-width: 720px) {
-  .roles-row { grid-template-columns: repeat(2, 1fr); gap: 1.5rem 0; }
-  .role::after { display: none; }
-  .role-label { max-width: 140px; }
-  .hero-frame { padding: 2.4rem 1.25rem; }
-  .dock-item { width: 40px; height: 40px; }
-}
-@media (hover: none), (pointer: coarse) {
-  .spotlight-cursor { display: none; }
+  .scroll-rail { right: 9px; width: 12px; }
+  .scroll-rail-track { top: 16vh; height: 62vh; }
+  .scroll-rail-tick-label { display: none; }
 }
 `;
 
@@ -1178,7 +459,7 @@ function useReveal() {
         el.classList.add("in");
         observer.unobserve(el);
       },
-      { threshold: 0.1 }
+      { threshold: 0.12 }
     );
     observer.observe(el);
     return () => observer.disconnect();
@@ -1195,253 +476,120 @@ function Reveal({ children, delay = 0, style }) {
   );
 }
 
-/* ─────────────── DECRYPT TEXT ─────────────── */
-
-function DecryptText({ text, duration = 1400, scramble = "!@#$%&*+-/=ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789" }) {
-  const [display, setDisplay] = useState(text);
-  useEffect(() => {
-    const chars = text.split("");
-    const total = chars.length;
-    const reveal = 8;
-    const tickMs = duration / (total + reveal);
-    let frame = 0;
-    const interval = setInterval(() => {
-      const out = chars.map((c, i) => {
-        if (c === " ") return " ";
-        if (i < frame - reveal) return c;
-        return scramble[Math.floor(Math.random() * scramble.length)];
-      }).join("");
-      setDisplay(out);
-      frame++;
-      if (frame > total + reveal) {
-        clearInterval(interval);
-        setDisplay(text);
-      }
-    }, tickMs);
-    return () => clearInterval(interval);
-  }, [text, duration, scramble]);
-  return <>{display}</>;
-}
-
-/* ─────────────── TYPEWRITER ─────────────── */
-
-function Typewriter({ phrases, typeSpeed = 65, deleteSpeed = 40, holdMs = 1600 }) {
+function Typewriter({ phrases, typeSpeed = 60, deleteSpeed = 35, holdMs = 1500 }) {
   const [text, setText] = useState("");
-  const [phraseIdx, setPhraseIdx] = useState(0);
-  const [deleting, setDeleting] = useState(false);
-
+  const [idx, setIdx] = useState(0);
+  const [del, setDel] = useState(false);
   useEffect(() => {
-    const current = phrases[phraseIdx];
-    if (!deleting && text === current) {
-      const t = setTimeout(() => setDeleting(true), holdMs);
-      return () => clearTimeout(t);
-    }
-    if (deleting && text === "") {
-      setDeleting(false);
-      setPhraseIdx((i) => (i + 1) % phrases.length);
-      return undefined;
-    }
+    const cur = phrases[idx];
+    if (!del && text === cur) { const t = setTimeout(() => setDel(true), holdMs); return () => clearTimeout(t); }
+    if (del && text === "") { setDel(false); setIdx((i) => (i + 1) % phrases.length); return undefined; }
     const t = setTimeout(() => {
-      setText((cur) => (deleting ? cur.slice(0, -1) : current.slice(0, cur.length + 1)));
-    }, deleting ? deleteSpeed : typeSpeed);
+      setText((c) => (del ? c.slice(0, -1) : cur.slice(0, c.length + 1)));
+    }, del ? deleteSpeed : typeSpeed);
     return () => clearTimeout(t);
-  }, [text, deleting, phraseIdx, phrases, typeSpeed, deleteSpeed, holdMs]);
-
-  return (
-    <>
-      {text}
-      <span className="cursor-blink" />
-    </>
-  );
+  }, [text, del, idx, phrases, typeSpeed, deleteSpeed, holdMs]);
+  return <>{text}<span className="cursor-blink" /></>;
 }
 
-/* ─────────────── COUNT UP ─────────────── */
-
-function CountUp({ to, duration = 1600, suffix = "" }) {
+function CountUp({ to, duration = 1500, suffix = "" }) {
   const [val, setVal] = useState(0);
   const ref = useRef(null);
   const started = useRef(false);
-
   useEffect(() => {
     const el = ref.current;
     if (!el) return undefined;
-    const observer = new IntersectionObserver(([entry]) => {
-      if (!entry.isIntersecting || started.current) return;
+    const ob = new IntersectionObserver(([e]) => {
+      if (!e.isIntersecting || started.current) return;
       started.current = true;
       const start = performance.now();
       const tick = (t) => {
         const p = Math.min((t - start) / duration, 1);
-        const eased = 1 - Math.pow(1 - p, 3);
-        setVal(Math.floor(to * eased));
-        if (p < 1) requestAnimationFrame(tick);
-        else setVal(to);
+        setVal(Math.floor(to * (1 - Math.pow(1 - p, 3))));
+        if (p < 1) requestAnimationFrame(tick); else setVal(to);
       };
       requestAnimationFrame(tick);
     }, { threshold: 0.4 });
-    observer.observe(el);
-    return () => observer.disconnect();
+    ob.observe(el);
+    return () => ob.disconnect();
   }, [to, duration]);
-
-  const formatted = val.toLocaleString();
-  return <span ref={ref}>{formatted}{suffix}</span>;
+  return <span ref={ref}>{val.toLocaleString()}{suffix}</span>;
 }
 
-/* ─────────────── TILT CARD ─────────────── */
-
-function TiltCard({ children, className = "", style, accent = C.accent, ...rest }) {
+function TiltCard({ children, accent, ...rest }) {
   const ref = useRef(null);
-
   const onMove = (e) => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = (e.clientX - rect.left) / rect.width - 0.5;
-    const y = (e.clientY - rect.top) / rect.height - 0.5;
-    el.style.transform = `perspective(900px) rotateY(${x * 10}deg) rotateX(${-y * 10}deg) translateY(-4px)`;
-    el.style.setProperty("--spot-x", `${(x + 0.5) * 100}%`);
-    el.style.setProperty("--spot-y", `${(y + 0.5) * 100}%`);
+    const el = ref.current; if (!el) return;
+    const r = el.getBoundingClientRect();
+    const x = (e.clientX - r.left) / r.width - 0.5;
+    const y = (e.clientY - r.top) / r.height - 0.5;
+    el.style.transform = `perspective(900px) rotateY(${x * 8}deg) rotateX(${-y * 8}deg) translateY(-3px)`;
   };
-  const onLeave = () => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.transform = "";
-  };
-
+  const onLeave = () => { if (ref.current) ref.current.style.transform = ""; };
   return (
-    <div
-      ref={ref}
-      className={`tilt-card ${className}`}
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
-      style={{ "--accent": accent, ...style }}
-      {...rest}
-    >
+    <div ref={ref} className="tilt-card" onMouseMove={onMove} onMouseLeave={onLeave} style={{ "--accent": accent }} {...rest}>
       {children}
     </div>
   );
 }
 
-/* ─────────────── MAGNETIC BUTTON ─────────────── */
-
-function MagneticButton({ children, className = "", strength = 0.35, ...rest }) {
+function MagneticButton({ children, strength = 0.3, ...rest }) {
   const ref = useRef(null);
   const onMove = (e) => {
-    const el = ref.current;
-    if (!el) return;
-    const rect = el.getBoundingClientRect();
-    const x = e.clientX - (rect.left + rect.width / 2);
-    const y = e.clientY - (rect.top + rect.height / 2);
-    el.style.transform = `translate(${x * strength}px, ${y * strength}px)`;
+    const el = ref.current; if (!el) return;
+    const r = el.getBoundingClientRect();
+    el.style.transform = `translate(${(e.clientX - (r.left + r.width / 2)) * strength}px, ${(e.clientY - (r.top + r.height / 2)) * strength}px)`;
   };
-  const onLeave = () => {
-    const el = ref.current;
-    if (!el) return;
-    el.style.transform = "";
-  };
-  return (
-    <button
-      ref={ref}
-      className={`magnetic-button ${className}`}
-      onMouseMove={onMove}
-      onMouseLeave={onLeave}
-      {...rest}
-    >
-      {children}
-    </button>
-  );
-}
-
-/* ─────────────── SPOTLIGHT CURSOR ─────────────── */
-
-function SpotlightCursor() {
-  const ref = useRef(null);
-  const pos = useRef({ x: -500, y: -500 });
-  const target = useRef({ x: -500, y: -500 });
-
-  useEffect(() => {
-    if (window.matchMedia("(hover: none), (pointer: coarse)").matches) return undefined;
-    const el = ref.current;
-    if (!el) return undefined;
-
-    const onMove = (e) => {
-      target.current.x = e.clientX;
-      target.current.y = e.clientY;
-    };
-    window.addEventListener("mousemove", onMove);
-
-    let raf;
-    const tick = () => {
-      pos.current.x += (target.current.x - pos.current.x) * 0.12;
-      pos.current.y += (target.current.y - pos.current.y) * 0.12;
-      el.style.transform = `translate(${pos.current.x}px, ${pos.current.y}px)`;
-      raf = requestAnimationFrame(tick);
-    };
-    tick();
-
-    return () => {
-      window.removeEventListener("mousemove", onMove);
-      cancelAnimationFrame(raf);
-    };
-  }, []);
-
-  return <div className="spotlight-cursor" ref={ref} aria-hidden="true" />;
-}
-
-/* ─────────────── PARTICLES BACKGROUND ─────────────── */
-
-function ParticlesBackground() {
-  const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1;
-  return (
-    <div className="particles-bg" aria-hidden="true">
-      <Particles
-        particleColors={["#3f5d8a", "#5b4f78", "#8aa0c8"]}
-        particleCount={170}
-        particleSpread={16}
-        speed={0.06}
-        particleBaseSize={70}
-        sizeRandomness={1}
-        alphaParticles
-        disableRotation={false}
-        moveParticlesOnHover={false}
-        pixelRatio={dpr}
-      />
-    </div>
-  );
+  const onLeave = () => { if (ref.current) ref.current.style.transform = ""; };
+  return <button ref={ref} className="mag-btn" onMouseMove={onMove} onMouseLeave={onLeave} {...rest}>{children}</button>;
 }
 
 /* ─────────────── ICONS ─────────────── */
 
 const Icon = ({ name, size = 18 }) => {
-  const props = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.6, strokeLinecap: "round", strokeLinejoin: "round" };
+  const p = { width: size, height: size, viewBox: "0 0 24 24", fill: "none", stroke: "currentColor", strokeWidth: 1.8, strokeLinecap: "round", strokeLinejoin: "round" };
   switch (name) {
-    case "github":
-      return <svg {...props}><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 6.77 5.07 5.07 0 0 0 19.91 3S18.73 2.65 16 4.55a13.38 13.38 0 0 0-7 0C6.27 2.65 5.09 3 5.09 3A5.07 5.07 0 0 0 5 6.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 20.13V24"/></svg>;
-    case "discord":
-      return <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>;
-    case "mail":
-      return <svg {...props}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>;
-    case "logo":
-      return <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 2L4 7v10l8 5 8-5V7l-8-5z" stroke="currentColor" strokeWidth="1.6" strokeLinejoin="round"/><path d="M9 11l3-2 3 2v4l-3 2-3-2v-4z" fill="currentColor" opacity=".9"/></svg>;
-    case "code":
-      return <svg {...props}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>;
-    case "web":
-      return <svg {...props}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>;
-    case "spark":
-      return <svg {...props}><path d="M12 2v6M12 16v6M2 12h6M16 12h6M5 5l4 4M15 15l4 4M5 19l4-4M15 9l4-4"/></svg>;
-    case "cube":
-      return <svg {...props}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>;
-    case "wave":
-      return <svg {...props}><path d="M3 12h2l2-6 4 12 4-12 2 6h4"/></svg>;
-    case "external":
-      return <svg {...props}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>;
-    case "home":
-      return <svg {...props}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
-    case "send":
-      return <svg {...props}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>;
-    default:
-      return null;
+    case "github": return <svg {...p}><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 6.77 5.07 5.07 0 0 0 19.91 3S18.73 2.65 16 4.55a13.38 13.38 0 0 0-7 0C6.27 2.65 5.09 3 5.09 3A5.07 5.07 0 0 0 5 6.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 20.13V24"/></svg>;
+    case "discord": return <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.79 19.79 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.74 19.74 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.058a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z"/></svg>;
+    case "mail": return <svg {...p}><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>;
+    case "code": return <svg {...p}><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg>;
+    case "web": return <svg {...p}><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>;
+    case "spark": return <svg {...p}><path d="M12 2v6M12 16v6M2 12h6M16 12h6M5 5l4 4M15 15l4 4M5 19l4-4M15 9l4-4"/></svg>;
+    case "cube": return <svg {...p}><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>;
+    case "wave": return <svg {...p}><path d="M3 12h2l2-6 4 12 4-12 2 6h4"/></svg>;
+    case "external": return <svg {...p}><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>;
+    case "home": return <svg {...p}><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>;
+    case "send": return <svg {...p}><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>;
+    case "star": return <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.95 6.7 7.05.6-5.4 4.7 1.7 7L12 17.8 5.7 21.7l1.7-7L2 10l7.05-.6z"/></svg>;
+    default: return null;
   }
 };
+
+/* ─────────────── BACKGROUND ─────────────── */
+
+function Background() {
+  const dpr = typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1;
+  return (
+    <>
+      <div className="bg-vignette" aria-hidden="true" />
+      <div className="bg-beams" aria-hidden="true" />
+      <div className="particles-bg" aria-hidden="true">
+        <Particles
+          particleColors={["#e10600", "#efe7d6", "#9c0400"]}
+          particleCount={130}
+          particleSpread={16}
+          speed={0.05}
+          particleBaseSize={60}
+          sizeRandomness={1}
+          alphaParticles
+          disableRotation={false}
+          moveParticlesOnHover={false}
+          pixelRatio={dpr}
+        />
+      </div>
+    </>
+  );
+}
 
 /* ─────────────── NAV ─────────────── */
 
@@ -1453,15 +601,14 @@ function Nav() {
     window.addEventListener("scroll", onScroll, { passive: true });
     return () => window.removeEventListener("scroll", onScroll);
   }, []);
-
   return (
     <nav className={`nav${scrolled ? " scrolled" : ""}`}>
-      <a href="#hero" className="logo-mark" aria-label="Home">
-        <Icon name="logo" />
+      <a href="#hero" className="nav-logo">
+        <span className="star"><Icon name="star" size={22} /></span> FLOCKY
       </a>
-      <div className="nav-pills">
-        {[["About", "hero"], ["Stack", "tech"], ["Work", "projects"], ["Music", "music"], ["Contact", "contact"]].map(([label, id]) => (
-          <a key={id} href={`#${id}`} className="nav-pill">{label}</a>
+      <div className="nav-links">
+        {[["About", "about"], ["Stack", "stack"], ["Work", "projects"], ["Music", "music"], ["Contact", "contact"]].map(([l, id]) => (
+          <a key={id} href={`#${id}`} className="nav-link">{l}</a>
         ))}
       </div>
       <a href={GITHUB_URL} target="_blank" rel="noreferrer" className="nav-cta">
@@ -1475,75 +622,86 @@ function Nav() {
 
 function Hero() {
   return (
-    <section id="hero" className="section" style={{ paddingTop: "8rem" }}>
-      <Reveal>
-        <div className="hero-frame">
-          <span className="corner-bl" />
-          <span className="corner-br" />
-          <div className="welcome-label">Welcome to</div>
-          <h1 className="hero-name">
-            <DecryptText text="FLOCKY" duration={1600} />
-          </h1>
-          <div className="hero-sub">Developer · Creator · Curious mind</div>
-          <div className="hero-tagline">
-            <Typewriter
-              phrases={[
-                "Converting caffeine into code.",
-                "Shipping shaders and side projects.",
-                "Building weird, useful things.",
-                "Sound · Pixels · Logic.",
-              ]}
-            />
-          </div>
-          <div className="hero-socials">
-            <a className="social-link" href={GITHUB_URL} target="_blank" rel="noreferrer" aria-label="GitHub">
-              <Icon name="github" />
-            </a>
-            <a className="social-link" href={DISCORD_INVITE} target="_blank" rel="noreferrer" aria-label="Discord">
-              <Icon name="discord" />
-            </a>
-            <a className="social-link" href={`mailto:${EMAIL}`} aria-label="Email">
-              <Icon name="mail" />
-            </a>
-          </div>
+    <section id="hero" className="hero">
+      <div className="hero-star" aria-hidden="true">
+        <svg viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+          <path d="M100 6l24 55 60 5-45 39 14 59-53-32-53 32 14-59L16 66l60-5z"
+            fill="none" stroke={C.red} strokeWidth="3" />
+          <path d="M100 30l16 38 41 3-31 27 9 40-35-22-35 22 9-40-31-27 41-3z"
+            fill={C.red} fillOpacity="0.12" stroke={C.redDeep} strokeWidth="1.5" />
+        </svg>
+      </div>
+      <div className="hero-inner">
+        <div className="hero-tag"><span className="bar" /> Creative Playground · MMXXVI</div>
+        <h1 className="hero-name">
+          <span className="glitch" data-text="FLOCKY">FLOCKY</span>
+        </h1>
+        <div className="hero-sub">Developer · Creator · Curious Mind</div>
+        <div className="hero-typeline">
+          <Typewriter phrases={[
+            "Converting caffeine into code.",
+            "Shipping shaders and side projects.",
+            "Building loud, useful things.",
+            "Code · Sound · Pixels.",
+          ]} />
         </div>
-      </Reveal>
+        <div className="hero-socials">
+          <a className="social-link" href={GITHUB_URL} target="_blank" rel="noreferrer" aria-label="GitHub"><Icon name="github" /></a>
+          <a className="social-link" href={DISCORD_INVITE} target="_blank" rel="noreferrer" aria-label="Discord"><Icon name="discord" /></a>
+          <a className="social-link" href={`mailto:${EMAIL}`} aria-label="Email"><Icon name="mail" /></a>
+        </div>
+      </div>
+    </section>
+  );
+}
 
+/* ─────────────── MARQUEE ─────────────── */
+
+function Marquee({ alt }) {
+  const words = [...SLOGANS, ...SLOGANS];
+  return (
+    <div className={`marquee${alt ? " alt" : ""}`} aria-hidden="true">
+      <div className="marquee-track">
+        {words.map((w, i) => <span key={i} className="marquee-word">{w}</span>)}
+      </div>
+    </div>
+  );
+}
+
+/* ─────────────── ABOUT ─────────────── */
+
+function About() {
+  return (
+    <section id="about" className="section">
+      <Reveal>
+        <div className="kicker">About</div>
+        <h2 className="heading">WHO <span className="red">AM&nbsp;I</span></h2>
+      </Reveal>
       <Reveal delay={120}>
-        <div className="roles-row">
-          {ROLES.map((r) => (
-            <div key={r.label} className="role">
-              <div className="role-icon"><Icon name={r.icon} size={22} /></div>
-              <div className="role-label">{r.label}</div>
-            </div>
-          ))}
+        <div className="about-wrap" style={{ marginTop: "3rem" }}>
+          <p className="about-text">
+            I'm <b>Flocky</b> — a developer who builds for the web, plays with shaders,
+            and tinkers with sound. I care about <b>clean code</b>, <b>bold design</b>,
+            and the tiny details that make products feel alive. I move fast, ship often,
+            and I'm always down to collaborate on something loud.
+          </p>
+          <div className="roles-list">
+            {ROLES.map((r, i) => (
+              <div key={r.label} className="role-row">
+                <span className="role-num">{String(i + 1).padStart(2, "0")}</span>
+                <span className="role-ic"><Icon name={r.icon} size={20} /></span>
+                <span className="role-name">{r.label}</span>
+              </div>
+            ))}
+          </div>
         </div>
       </Reveal>
-
-      <Reveal delay={200}>
-        <p className="about-text">
-          I'm Flocky — a developer who builds for the web, plays with shaders,
-          and tinkers with sound. I care about clean code, thoughtful UI, and the
-          tiny details that make products feel alive.
-        </p>
-      </Reveal>
-    </section>
-  );
-}
-
-/* ─────────────── STATS ─────────────── */
-
-function Stats() {
-  return (
-    <section className="section" style={{ paddingTop: "2rem", paddingBottom: "2rem" }}>
-      <Reveal>
-        <div className="stats-grid">
+      <Reveal delay={160}>
+        <div className="stats">
           {STATS.map((s) => (
-            <div key={s.label} className="stat-card">
-              <div className="stat-number">
-                <CountUp to={s.value} suffix={s.suffix} />
-              </div>
-              <div className="stat-label">{s.label}</div>
+            <div key={s.label} className="stat">
+              <div className="stat-num"><CountUp to={s.value} suffix={s.suffix} /></div>
+              <div className="stat-lbl">{s.label}</div>
             </div>
           ))}
         </div>
@@ -1552,29 +710,30 @@ function Stats() {
   );
 }
 
-/* ─────────────── TECH STACK ─────────────── */
+/* ─────────────── STACK ─────────────── */
 
-function TechStack() {
-  const half1 = useMemo(() => TECH.slice(0, 12), []);
-  const half2 = useMemo(() => TECH.slice(12), []);
+function Stack() {
+  const a = useMemo(() => TECH.slice(0, 12), []);
+  const b = useMemo(() => TECH.slice(12), []);
   return (
-    <section id="tech" className="section">
+    <section id="stack" className="section">
       <Reveal>
-        <div className="section-label">Tech Stack</div>
+        <div className="kicker">Toolkit</div>
+        <h2 className="heading"><span className="outline">STACK</span></h2>
       </Reveal>
-      <Reveal delay={80}>
-        <div className="marquee-wrap">
-          <div className="marquee-track">
-            {[...half1, ...half1].map((slug, i) => (
-              <div key={`a-${slug}-${i}`} className="marquee-tile" title={slug}>
-                <img src={`https://cdn.simpleicons.org/${slug}/dbe9ff`} alt={slug} loading="lazy" />
+      <Reveal delay={80} style={{ marginTop: "2.5rem" }}>
+        <div className="tech-marquee">
+          <div className="tech-track">
+            {[...a, ...a].map((s, i) => (
+              <div key={`a${i}`} className="tech-tile" title={s}>
+                <img src={`https://cdn.simpleicons.org/${s}/efe7d6`} alt={s} loading="lazy" />
               </div>
             ))}
           </div>
-          <div className="marquee-track reverse">
-            {[...half2, ...half2].map((slug, i) => (
-              <div key={`b-${slug}-${i}`} className="marquee-tile" title={slug}>
-                <img src={`https://cdn.simpleicons.org/${slug}/dbe9ff`} alt={slug} loading="lazy" />
+          <div className="tech-track rev">
+            {[...b, ...b].map((s, i) => (
+              <div key={`b${i}`} className="tech-tile" title={s}>
+                <img src={`https://cdn.simpleicons.org/${s}/efe7d6`} alt={s} loading="lazy" />
               </div>
             ))}
           </div>
@@ -1584,94 +743,55 @@ function TechStack() {
   );
 }
 
-/* ─────────────── PROJECT PREVIEW THUMBNAILS ─────────────── */
+/* ─────────────── PROJECT PREVIEWS ─────────────── */
 
 function ProjectPreview({ type, accent }) {
+  const ink = "#141414";
   if (type === "chat") {
     return (
       <svg className="preview-svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="pv-chat" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor={accent} stopOpacity="0.22" />
-            <stop offset="1" stopColor="#070b1c" stopOpacity="0.95" />
-          </linearGradient>
-        </defs>
-        <rect width="320" height="200" fill="url(#pv-chat)" />
-        {/* incoming bubble */}
-        <rect x="26" y="40" rx="13" width="150" height="36" fill="rgba(255,255,255,0.08)" />
-        <rect x="40" y="52" width="92" height="5" rx="2.5" fill="rgba(255,255,255,0.4)" />
-        <rect x="40" y="63" width="58" height="5" rx="2.5" fill="rgba(255,255,255,0.22)" />
-        {/* outgoing bubble (accent) */}
-        <rect x="144" y="96" rx="13" width="150" height="36" fill={accent} fillOpacity="0.85" />
-        <rect x="158" y="108" width="104" height="5" rx="2.5" fill="rgba(7,11,28,0.55)" />
-        <rect x="158" y="119" width="72" height="5" rx="2.5" fill="rgba(7,11,28,0.35)" />
-        {/* small incoming bubble */}
-        <rect x="26" y="150" rx="13" width="112" height="30" fill="rgba(255,255,255,0.08)" />
-        <rect x="40" y="162" width="74" height="5" rx="2.5" fill="rgba(255,255,255,0.32)" />
-        {/* car glyph */}
+        <rect width="320" height="200" fill={ink} />
+        <rect x="26" y="40" width="150" height="36" fill="rgba(239,231,214,0.1)" />
+        <rect x="40" y="52" width="92" height="5" fill="rgba(239,231,214,0.5)" />
+        <rect x="40" y="63" width="58" height="5" fill="rgba(239,231,214,0.28)" />
+        <rect x="144" y="96" width="150" height="36" fill={accent} />
+        <rect x="158" y="108" width="104" height="5" fill="rgba(11,11,11,0.55)" />
+        <rect x="158" y="119" width="72" height="5" fill="rgba(11,11,11,0.35)" />
+        <rect x="26" y="150" width="112" height="30" fill="rgba(239,231,214,0.1)" />
+        <rect x="40" y="162" width="74" height="5" fill="rgba(239,231,214,0.4)" />
         <g transform="translate(244,30)" stroke={accent} strokeWidth="3" fill="none" strokeLinecap="round" strokeLinejoin="round">
-          <path d="M2 20 L7 9 L33 9 L38 20" />
-          <rect x="-1" y="20" width="42" height="13" rx="4" />
-          <circle cx="11" cy="35" r="3.5" fill="#070b1c" />
-          <circle cx="29" cy="35" r="3.5" fill="#070b1c" />
+          <path d="M2 20 L7 9 L33 9 L38 20" /><rect x="-1" y="20" width="42" height="13" />
+          <circle cx="11" cy="35" r="3.5" fill={ink} /><circle cx="29" cy="35" r="3.5" fill={ink} />
         </g>
       </svg>
     );
   }
-
   if (type === "browser") {
     return (
       <svg className="preview-svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-        <defs>
-          <linearGradient id="pv-br" x1="0" y1="0" x2="1" y2="1">
-            <stop offset="0" stopColor={accent} stopOpacity="0.2" />
-            <stop offset="1" stopColor="#070b1c" stopOpacity="0.96" />
-          </linearGradient>
-          <linearGradient id="pv-wordmark" x1="0" y1="0" x2="0" y2="1">
-            <stop offset="0" stopColor="#ffffff" />
-            <stop offset="1" stopColor={accent} />
-          </linearGradient>
-        </defs>
-        <rect width="320" height="200" fill="url(#pv-br)" />
-        {/* browser chrome */}
-        <rect x="0" y="0" width="320" height="28" fill="rgba(255,255,255,0.05)" />
-        <circle cx="18" cy="14" r="4" fill="rgba(255,255,255,0.25)" />
-        <circle cx="32" cy="14" r="4" fill="rgba(255,255,255,0.18)" />
-        <circle cx="46" cy="14" r="4" fill="rgba(255,255,255,0.12)" />
-        <rect x="64" y="8" width="234" height="12" rx="6" fill="rgba(255,255,255,0.05)" />
-        {/* hero wordmark */}
-        <text x="160" y="118" textAnchor="middle" fontFamily="Sora, sans-serif" fontWeight="700" fontSize="44" letterSpacing="1" fill="url(#pv-wordmark)">FLOCKY</text>
-        <rect x="120" y="138" width="80" height="5" rx="2.5" fill="rgba(255,255,255,0.18)" />
-        <rect x="135" y="150" width="50" height="5" rx="2.5" fill="rgba(255,255,255,0.1)" />
+        <rect width="320" height="200" fill={ink} />
+        <rect x="0" y="0" width="320" height="28" fill="rgba(239,231,214,0.06)" />
+        <rect x="14" y="11" width="8" height="6" fill="#e10600" />
+        <rect x="28" y="11" width="8" height="6" fill="rgba(239,231,214,0.3)" />
+        <rect x="42" y="11" width="8" height="6" fill="rgba(239,231,214,0.18)" />
+        <rect x="64" y="8" width="234" height="12" fill="rgba(239,231,214,0.05)" />
+        <text x="160" y="120" textAnchor="middle" fontFamily="Anton, sans-serif" fontSize="50" letterSpacing="2" fill={accent}>FLOCKY</text>
+        <rect x="120" y="138" width="80" height="5" fill="rgba(239,231,214,0.2)" />
       </svg>
     );
   }
-
-  // terminal
   return (
     <svg className="preview-svg" viewBox="0 0 320 200" preserveAspectRatio="xMidYMid slice" xmlns="http://www.w3.org/2000/svg">
-      <defs>
-        <linearGradient id="pv-term" x1="0" y1="0" x2="1" y2="1">
-          <stop offset="0" stopColor={accent} stopOpacity="0.2" />
-          <stop offset="1" stopColor="#070b1c" stopOpacity="0.96" />
-        </linearGradient>
-      </defs>
-      <rect width="320" height="200" fill="url(#pv-term)" />
-      {/* window */}
-      <rect x="34" y="34" width="252" height="132" rx="10" fill="rgba(7,11,28,0.75)" stroke="rgba(255,255,255,0.08)" />
-      <rect x="34" y="34" width="252" height="26" rx="10" fill="rgba(255,255,255,0.05)" />
-      <circle cx="50" cy="47" r="3.5" fill="rgba(255,255,255,0.25)" />
-      <circle cx="62" cy="47" r="3.5" fill="rgba(255,255,255,0.18)" />
-      <circle cx="74" cy="47" r="3.5" fill="rgba(255,255,255,0.12)" />
-      {/* terminal lines */}
-      <text x="48" y="84" fontFamily="'Space Mono', monospace" fontSize="11" fill={accent}>&gt; <tspan fill="rgba(255,255,255,0.65)">/screenshot</tspan></text>
-      <text x="48" y="104" fontFamily="'Space Mono', monospace" fontSize="11" fill="rgba(255,255,255,0.4)">  capturing display…</text>
-      <text x="48" y="124" fontFamily="'Space Mono', monospace" fontSize="11" fill={accent}>&gt; <tspan fill="rgba(255,255,255,0.65)">/lock</tspan></text>
-      <text x="48" y="144" fontFamily="'Space Mono', monospace" fontSize="11" fill="rgba(255,255,255,0.4)">  pc locked ✓</text>
-      {/* telegram paper plane */}
-      <g transform="translate(236,96)" fill={accent} opacity="0.9">
-        <path d="M40 2 L2 20 L16 24 L20 40 L26 28 L38 38 Z" />
-      </g>
+      <rect width="320" height="200" fill={ink} />
+      <rect x="34" y="34" width="252" height="132" fill="rgba(11,11,11,0.7)" stroke="rgba(239,231,214,0.1)" />
+      <rect x="34" y="34" width="252" height="26" fill="rgba(239,231,214,0.06)" />
+      <rect x="46" y="44" width="8" height="6" fill="#e10600" />
+      <rect x="60" y="44" width="8" height="6" fill="rgba(239,231,214,0.3)" />
+      <text x="48" y="84" fontFamily="'Space Mono', monospace" fontSize="11" fill={accent}>&gt; <tspan fill="rgba(239,231,214,0.7)">/screenshot</tspan></text>
+      <text x="48" y="104" fontFamily="'Space Mono', monospace" fontSize="11" fill="rgba(239,231,214,0.4)">  capturing…</text>
+      <text x="48" y="124" fontFamily="'Space Mono', monospace" fontSize="11" fill={accent}>&gt; <tspan fill="rgba(239,231,214,0.7)">/lock</tspan></text>
+      <text x="48" y="144" fontFamily="'Space Mono', monospace" fontSize="11" fill="rgba(239,231,214,0.4)">  pc locked</text>
+      <g transform="translate(236,96)" fill={accent}><path d="M40 2 L2 20 L16 24 L20 40 L26 28 L38 38 Z" /></g>
     </svg>
   );
 }
@@ -1682,26 +802,21 @@ function Projects() {
   return (
     <section id="projects" className="section">
       <Reveal>
-        <div className="section-label">Selected Work</div>
+        <div className="kicker">Selected Work</div>
+        <h2 className="heading">PRO<span className="red">JECTS</span></h2>
       </Reveal>
-      <Reveal delay={80}>
+      <Reveal delay={80} style={{ marginTop: "3rem" }}>
         <div className="projects-grid">
           {PROJECTS.map((p) => (
             <TiltCard key={p.name} accent={p.accent}>
-              <div className="tilt-preview">
-                <ProjectPreview type={p.preview} accent={p.accent} />
-              </div>
-              <div>
-                <div className="tilt-tag">{p.tag}</div>
+              <div className="tilt-preview"><ProjectPreview type={p.preview} accent={p.accent} /></div>
+              <div className="tilt-body">
+                <span className="tilt-tag">{p.tag}</span>
                 <h3 className="tilt-title">{p.name}</h3>
                 <p className="tilt-desc">{p.desc}</p>
-                <div className="tilt-footer">
-                  <span style={{ fontFamily: F.mono, fontSize: ".62rem", color: C.textMuted, letterSpacing: ".1em" }}>
-                    VIEW SOURCE
-                  </span>
-                  <a className="tilt-link" href={p.link} target="_blank" rel="noreferrer" aria-label="GitHub">
-                    <Icon name="external" size={13} />
-                  </a>
+                <div className="tilt-foot">
+                  <span className="tilt-src">VIEW SOURCE</span>
+                  <a className="tilt-link" href={p.link} target="_blank" rel="noreferrer" aria-label="Source"><Icon name="external" size={13} /></a>
                 </div>
               </div>
             </TiltCard>
@@ -1715,47 +830,36 @@ function Projects() {
 /* ─────────────── SPOTIFY ─────────────── */
 
 function timeAgo(ms) {
-  const seconds = Math.floor((Date.now() - ms) / 1000);
-  if (seconds < 60) return "just now";
-  if (seconds < 3600) return `${Math.floor(seconds / 60)}m`;
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)}h`;
-  return `${Math.floor(seconds / 86400)}d`;
+  const s = Math.floor((Date.now() - ms) / 1000);
+  if (s < 60) return "now";
+  if (s < 3600) return `${Math.floor(s / 60)}m`;
+  if (s < 86400) return `${Math.floor(s / 3600)}h`;
+  return `${Math.floor(s / 86400)}d`;
 }
 
 function Spotify() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  const demoNow = useMemo(() => ({
-    name: "Welcome To The Flock",
-    artists: [{ name: "FLOCKY" }],
-    album: { images: [{ url: "" }] },
-    external_urls: { spotify: "#" },
-  }), []);
-
+  const demoNow = useMemo(() => ({ name: "Мой Калашников", artists: [{ name: "FACE" }], album: { images: [{ url: "" }] }, external_urls: { spotify: "#" } }), []);
   const demoRecent = useMemo(() => [
-    ["Birdcode Jam", "FLOCKY Sound", 1800000],
-    ["Feathered Loops", "Lo Fi Flock", 3600000],
-    ["Digital Roost", "NestNet", 7200000],
-    ["Sunrise Singalong", "The Collective", 10800000],
-    ["Sky Patrol", "Flocky", 21600000],
-  ].map(([name, artist, age]) => ({
-    track: { name, artists: [{ name: artist }], album: { images: [{ url: "" }] } },
-    played_at: new Date(Date.now() - age).toISOString(),
-  })), []);
+    ["Мой Калашников", "FACE", 1800000],
+    ["Юморист", "FACE", 3600000],
+    ["Бургер", "FACE", 7200000],
+    ["Гоша Рубчинский", "FACE", 10800000],
+    ["Скейт", "FACE", 21600000],
+  ].map(([n, a, age]) => ({ track: { name: n, artists: [{ name: a }], album: { images: [{ url: "" }] } }, played_at: new Date(Date.now() - age).toISOString() })), []);
 
   useEffect(() => {
     let cancelled = false;
     const load = async () => {
       try {
         const res = await fetch("/api/spotify");
-        if (!res.ok) throw new Error("not ok");
+        if (!res.ok) throw new Error("no");
         const json = await res.json();
-        if (cancelled) return;
-        setData(json);
+        if (!cancelled) setData(json);
       } catch {
-        if (cancelled) return;
-        setData(null);
+        if (!cancelled) setData(null);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -1774,71 +878,41 @@ function Spotify() {
   return (
     <section id="music" className="section">
       <Reveal>
-        <div className="section-label">Sound & Taste</div>
+        <div className="kicker">Sound & Taste</div>
+        <h2 className="heading">MU<span className="red">SIC</span></h2>
       </Reveal>
-      <Reveal delay={80}>
+      <Reveal delay={80} style={{ marginTop: "3rem" }}>
         <div className="spotify-grid">
-          <div className="spotify-now">
-            <div className="spotify-pill">
-              <span className="spotify-pulse" />
-              {isPlaying ? "Now Playing" : "Last Played"}
-            </div>
-            <div
-              className={`vinyl${isPlaying ? "" : " paused"}`}
-            >
-              <div
-                className="vinyl-label"
-                style={cover ? { backgroundImage: `url(${cover})` } : undefined}
-              />
+          <div className="sp-now">
+            <div className="sp-pill"><span className="sp-pulse" />{isPlaying ? "Now Playing" : "Last Played"}</div>
+            <div className={`vinyl${isPlaying ? "" : " paused"}`}>
+              <div className="vinyl-label" style={cover ? { backgroundImage: `url(${cover})` } : undefined} />
               <div className="vinyl-hole" />
             </div>
-            <h3 className="spotify-track-name">{loading ? "Loading…" : (now?.name || "Nothing playing")}</h3>
-            <div className="spotify-artist">{artists || "—"}</div>
-            <div className={`equalizer${isPlaying ? "" : " eq-paused"}`} aria-hidden="true">
-              {Array.from({ length: 7 }).map((_, i) => <span key={i} className="eq-bar" />)}
+            <h3 className="sp-track">{loading ? "Loading…" : (now?.name || "Nothing playing")}</h3>
+            <div className="sp-artist">{artists || "—"}</div>
+            <div className={`eq${isPlaying ? "" : " paused"}`} aria-hidden="true">
+              {Array.from({ length: 7 }).map((_, i) => <span key={i} />)}
             </div>
             {now?.external_urls?.spotify && now.external_urls.spotify !== "#" && (
-              <div style={{ textAlign: "center", marginTop: "1.2rem" }}>
-                <a
-                  href={now.external_urls.spotify}
-                  target="_blank"
-                  rel="noreferrer"
-                  style={{
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: ".5rem",
-                    padding: ".6rem 1.2rem",
-                    borderRadius: 9999,
-                    background: C.green,
-                    color: "#000",
-                    fontFamily: F.sans,
-                    fontSize: ".78rem",
-                    fontWeight: 600,
-                    letterSpacing: ".02em",
-                  }}
-                >
+              <div style={{ textAlign: "center" }}>
+                <a className="sp-open" href={now.external_urls.spotify} target="_blank" rel="noreferrer">
                   Open on Spotify <Icon name="external" size={12} />
                 </a>
               </div>
             )}
           </div>
-
-          <div className="spotify-recent">
-            <div className="recent-label">Recently Played</div>
-            {recent.slice(0, 6).map((item, i) => (
-              <div key={`${item.played_at}-${i}`} className="recent-row">
-                <div className="recent-num">{String(i + 1).padStart(2, "0")}</div>
-                <div
-                  className="recent-art"
-                  style={item.track?.album?.images?.[2]?.url
-                    ? { backgroundImage: `url(${item.track.album.images[2].url})` }
-                    : undefined}
-                />
-                <div className="recent-track">
-                  <div className="recent-name">{item.track?.name}</div>
-                  <div className="recent-artist">{item.track?.artists?.map((a) => a.name).join(", ")}</div>
+          <div className="sp-recent">
+            <div className="sp-rlabel">Recently Played</div>
+            {recent.slice(0, 6).map((it, i) => (
+              <div key={`${it.played_at}-${i}`} className="rrow">
+                <div className="rnum">{String(i + 1).padStart(2, "0")}</div>
+                <div className="rart" style={it.track?.album?.images?.[2]?.url ? { backgroundImage: `url(${it.track.album.images[2].url})` } : undefined} />
+                <div className="rtrack">
+                  <div className="rname">{it.track?.name}</div>
+                  <div className="rartist">{it.track?.artists?.map((a) => a.name).join(", ")}</div>
                 </div>
-                <div className="recent-time">{timeAgo(new Date(item.played_at).getTime())}</div>
+                <div className="rtime">{timeAgo(new Date(it.played_at).getTime())}</div>
               </div>
             ))}
           </div>
@@ -1853,86 +927,31 @@ function Spotify() {
 function Contact() {
   const [form, setForm] = useState({ name: "", whatsapp: "", email: "", note: "" });
   const onChange = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
-
   const onSubmit = useCallback((e) => {
     e.preventDefault();
     const subject = encodeURIComponent(`Hi from ${form.name || "the web"}`);
-    const body = encodeURIComponent(
-      `Name: ${form.name}\nWhatsApp: ${form.whatsapp}\nEmail: ${form.email}\n\n${form.note}`
-    );
+    const body = encodeURIComponent(`Name: ${form.name}\nWhatsApp: ${form.whatsapp}\nEmail: ${form.email}\n\n${form.note}`);
     window.location.href = `mailto:${EMAIL}?subject=${subject}&body=${body}`;
   }, [form]);
 
   return (
     <section id="contact" className="section">
-      <Reveal>
-        <div className="section-label">Get in touch</div>
-      </Reveal>
-      <div className="contact-grid">
+      <Reveal><div className="kicker">Get In Touch</div></Reveal>
+      <div className="contact-grid" style={{ marginTop: "1.5rem" }}>
         <Reveal>
-          <h2 className="contact-heading">
-            Feel free to fill<br />up your details,<br />
-            <span style={{ color: C.textSubtle, fontWeight: 500 }}>
-              I will reach out to you asap.
-            </span>
-          </h2>
+          <h2 className="contact-head">FILL UP<br /><span className="red">YOUR DETAILS,</span><br />I'LL REACH OUT.</h2>
         </Reveal>
-
         <Reveal delay={100}>
           <form className="contact-form" onSubmit={onSubmit}>
-            <div className="field">
-              <label htmlFor="name">Your name</label>
-              <input id="name" type="text" required value={form.name} onChange={onChange("name")} />
-            </div>
-            <div className="field">
-              <label htmlFor="whatsapp">WhatsApp No.</label>
-              <input id="whatsapp" type="tel" value={form.whatsapp} onChange={onChange("whatsapp")} />
-            </div>
-            <div className="field">
-              <label htmlFor="email">Email Address</label>
-              <input id="email" type="email" required value={form.email} onChange={onChange("email")} />
-            </div>
-            <div className="field">
-              <label htmlFor="note">Note (optional)</label>
-              <textarea id="note" rows={2} value={form.note} onChange={onChange("note")} />
-            </div>
-            <MagneticButton type="submit">
-              <span style={{ display: "inline-flex", alignItems: "center", gap: ".55rem" }}>
-                Let's schedule a meet <Icon name="send" size={13} />
-              </span>
-            </MagneticButton>
+            <div className="field"><label htmlFor="name">Your name</label><input id="name" type="text" required value={form.name} onChange={onChange("name")} /></div>
+            <div className="field"><label htmlFor="whatsapp">WhatsApp No.</label><input id="whatsapp" type="tel" value={form.whatsapp} onChange={onChange("whatsapp")} /></div>
+            <div className="field"><label htmlFor="email">Email Address</label><input id="email" type="email" required value={form.email} onChange={onChange("email")} /></div>
+            <div className="field"><label htmlFor="note">Note</label><textarea id="note" rows={2} value={form.note} onChange={onChange("note")} /></div>
+            <MagneticButton type="submit"><span style={{ display: "inline-flex", alignItems: "center", gap: ".5rem" }}>Let's schedule a meet <Icon name="send" size={13} /></span></MagneticButton>
           </form>
         </Reveal>
       </div>
     </section>
-  );
-}
-
-/* ─────────────── DOCK ─────────────── */
-
-function Dock() {
-  const items = [
-    { name: "Home", href: "#hero", icon: "home" },
-    { name: "GitHub", href: GITHUB_URL, icon: "github", external: true },
-    { name: "Discord", href: DISCORD_INVITE, icon: "discord", external: true },
-    { name: "Email", href: `mailto:${EMAIL}`, icon: "mail" },
-  ];
-  return (
-    <div className="dock" aria-label="Quick links">
-      {items.map((it) => (
-        <a
-          key={it.name}
-          href={it.href}
-          target={it.external ? "_blank" : undefined}
-          rel={it.external ? "noreferrer" : undefined}
-          className="dock-item"
-          aria-label={it.name}
-        >
-          <Icon name={it.icon} size={18} />
-          <span className="dock-tooltip">{it.name}</span>
-        </a>
-      ))}
-    </div>
   );
 }
 
@@ -1941,21 +960,35 @@ function Dock() {
 function Footer() {
   return (
     <footer className="footer">
-      <div className="footer-bye">Bye</div>
-      <div className="footer-sub">Do Visit Again</div>
+      <div className="footer-big">BYE<span className="red">.</span></div>
+      <div className="footer-sub">Do Visit Again · © {new Date().getFullYear()} FLOCKY</div>
     </footer>
+  );
+}
+
+/* ─────────────── DOCK ─────────────── */
+
+function Dock() {
+  const items = [
+    { name: "Home", href: "#hero", icon: "home" },
+    { name: "GitHub", href: GITHUB_URL, icon: "github", ext: true },
+    { name: "Discord", href: DISCORD_INVITE, icon: "discord", ext: true },
+    { name: "Email", href: `mailto:${EMAIL}`, icon: "mail" },
+  ];
+  return (
+    <div className="dock">
+      {items.map((it) => (
+        <a key={it.name} href={it.href} target={it.ext ? "_blank" : undefined} rel={it.ext ? "noreferrer" : undefined} className="dock-item" aria-label={it.name}>
+          <Icon name={it.icon} size={18} /><span className="dock-tip">{it.name}</span>
+        </a>
+      ))}
+    </div>
   );
 }
 
 /* ─────────────── SCROLL RAIL ─────────────── */
 
-const RAIL_SECTIONS = [
-  ["hero", "About"],
-  ["tech", "Stack"],
-  ["projects", "Work"],
-  ["music", "Music"],
-  ["contact", "Contact"],
-];
+const RAIL_SECTIONS = [["hero", "Top"], ["about", "About"], ["stack", "Stack"], ["projects", "Work"], ["music", "Music"], ["contact", "Contact"]];
 
 function ScrollRail() {
   const railRef = useRef(null);
@@ -1967,29 +1000,22 @@ function ScrollRail() {
   const [active, setActive] = useState(0);
 
   const show = useCallback(() => {
-    const rail = railRef.current;
-    if (rail) rail.classList.add("visible");
+    railRef.current?.classList.add("visible");
     if (idleRef.current) clearTimeout(idleRef.current);
-    idleRef.current = setTimeout(() => {
-      railRef.current?.classList.remove("visible");
-    }, 1300);
+    idleRef.current = setTimeout(() => railRef.current?.classList.remove("visible"), 1300);
   }, []);
 
   useEffect(() => {
     const measure = () => {
       const max = (document.documentElement.scrollHeight - window.innerHeight) || 1;
-      const tops = [];
-      const fr = [];
+      const tops = []; const fr = [];
       RAIL_SECTIONS.forEach(([id]) => {
         const el = document.getElementById(id);
         const top = el ? el.offsetTop : 0;
-        tops.push(top);
-        fr.push(Math.min(Math.max(top / max, 0), 1));
+        tops.push(top); fr.push(Math.min(Math.max(top / max, 0), 1));
       });
-      topsRef.current = tops;
-      setFracs(fr);
+      topsRef.current = tops; setFracs(fr);
     };
-
     const onScroll = () => {
       const max = (document.documentElement.scrollHeight - window.innerHeight) || 1;
       const p = Math.min(Math.max(window.scrollY / max, 0), 1);
@@ -1997,18 +1023,14 @@ function ScrollRail() {
       if (dotRef.current) dotRef.current.style.top = `${p * 100}%`;
       const mark = window.scrollY + window.innerHeight * 0.35;
       let idx = 0;
-      for (let i = 0; i < topsRef.current.length; i++) {
-        if (topsRef.current[i] <= mark) idx = i;
-      }
+      for (let i = 0; i < topsRef.current.length; i++) if (topsRef.current[i] <= mark) idx = i;
       setActive((prev) => (prev === idx ? prev : idx));
       show();
     };
-
-    measure();
-    onScroll();
+    measure(); onScroll();
     window.addEventListener("scroll", onScroll, { passive: true });
     window.addEventListener("resize", measure);
-    const t = setTimeout(measure, 800); // re-measure after fonts/images settle
+    const t = setTimeout(measure, 800);
     return () => {
       window.removeEventListener("scroll", onScroll);
       window.removeEventListener("resize", measure);
@@ -2017,34 +1039,15 @@ function ScrollRail() {
     };
   }, [show]);
 
-  const go = (id) => {
-    const el = document.getElementById(id);
-    if (el) el.scrollIntoView({ behavior: "smooth" });
-  };
-
-  const keepVisible = () => {
-    railRef.current?.classList.add("visible");
-    if (idleRef.current) clearTimeout(idleRef.current);
-  };
+  const go = (id) => { document.getElementById(id)?.scrollIntoView({ behavior: "smooth" }); };
+  const keep = () => { railRef.current?.classList.add("visible"); if (idleRef.current) clearTimeout(idleRef.current); };
 
   return (
-    <div
-      className="scroll-rail"
-      ref={railRef}
-      onMouseEnter={keepVisible}
-      onMouseLeave={show}
-    >
+    <div className="scroll-rail" ref={railRef} onMouseEnter={keep} onMouseLeave={show}>
       <div className="scroll-rail-track">
         <div className="scroll-rail-fill" ref={fillRef} />
         {RAIL_SECTIONS.map(([id, label], i) => (
-          <button
-            key={id}
-            type="button"
-            className={`scroll-rail-tick${i === active ? " active" : ""}`}
-            style={{ top: `${(fracs[i] ?? 0) * 100}%` }}
-            onClick={() => go(id)}
-            aria-label={label}
-          >
+          <button key={id} type="button" className={`scroll-rail-tick${i === active ? " active" : ""}`} style={{ top: `${(fracs[i] ?? 0) * 100}%` }} onClick={() => go(id)} aria-label={label}>
             <span className="scroll-rail-tick-label">{label}</span>
           </button>
         ))}
@@ -2056,33 +1059,23 @@ function ScrollRail() {
   );
 }
 
-/* ─────────────── AURORA BG ─────────────── */
-
-function Aurora() {
-  return (
-    <div className="aurora" aria-hidden="true">
-      <div className="aurora-blob a" />
-      <div className="aurora-blob b" />
-      <div className="aurora-blob c" />
-    </div>
-  );
-}
-
 /* ─────────────── APP ─────────────── */
 
 export default function App() {
   return (
     <>
       <InjectStyles />
-      <Aurora />
-      <ParticlesBackground />
-      <SpotlightCursor />
+      <Background />
       <Nav />
       <Hero />
-      <Stats />
-      <TechStack />
+      <Marquee />
+      <About />
+      <Marquee alt />
+      <Stack />
+      <div className="hazard" />
       <Projects />
       <Spotify />
+      <Marquee />
       <Contact />
       <Footer />
       <ScrollRail />
