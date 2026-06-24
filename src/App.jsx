@@ -1074,7 +1074,9 @@ body::after {
 .scroll-rail-tick:hover .scroll-rail-tick-label,
 .scroll-rail-tick.active .scroll-rail-tick-label { opacity: 1; }
 @media (max-width: 900px) {
-  .scroll-rail { display: none; }
+  .scroll-rail { right: 10px; width: 12px; }
+  .scroll-rail-track { top: 16vh; height: 62vh; }
+  .scroll-rail-tick-label { display: none; }
 }
 
 /* ── FOOTER ── */
